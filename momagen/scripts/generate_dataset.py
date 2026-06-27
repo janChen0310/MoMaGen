@@ -40,7 +40,7 @@ from robomimic.utils.file_utils import get_env_metadata_from_dataset
 import robomimic.utils.env_utils as EnvUtils
 import momagen.utils.file_utils as MG_FileUtils
 import momagen.utils.robomimic_utils as RobomimicUtils
-from momagen.utils.robot_config import configure_tiago_env_meta
+from momagen.utils.robot_config import configure_tiago_env_meta, configure_tidybot_env_meta
 
 from momagen.configs.config import config_factory
 from momagen.configs.task_spec import MG_TaskSpec
@@ -214,6 +214,8 @@ def generate_dataset(
     
     if robot_type == "Tiago":
         env_meta = configure_tiago_env_meta(env_meta)
+    elif robot_type == "TidyBot":
+        env_meta = configure_tidybot_env_meta(env_meta)
 
     # set seed for generation
     random.seed(mg_config.experiment.seed)
@@ -459,9 +461,11 @@ def generate_dataset(
 
         except exceptions_to_except as e:
             # problematic trajectory - do not have this count towards our total number of attempts, and re-try
+            import traceback as _tb
             print("")
             print("*" * 50)
-            print("WARNING: got rollout exception {}".format(e))
+            print("WARNING: got rollout exception {!r}".format(e))
+            _tb.print_exc()
             print("*" * 50)
             print("")
             
@@ -475,6 +479,9 @@ def generate_dataset(
             all_episode_logs["phase_logs"].append(dict())
             
             num_problematic += 1
+            if num_problematic > 15:
+                print(f"ABORTING: {num_problematic} problematic attempts (persistent exception above).")
+                break
             continue
         
         num_attempts += 1
@@ -883,7 +890,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--robot_type",
         type=str,
-        help="robot type to use for data generation. Options: R1 or Tiago",
+        choices=["R1", "Tiago", "TidyBot"],
+        help="robot type to use for data generation. Options: R1, Tiago, or TidyBot",
         default="R1",
     )
 

@@ -130,7 +130,7 @@ def prepare_src_dataset(
     output_path = os.path.join(output_dir, f_name)
     shutil.copy(dataset_path, output_path)
 
-    if env_interface_type == "omnigibson" or env_interface_type == "omnigibson_bimanual":
+    if env_interface_type in ("omnigibson", "omnigibson_bimanual", "omnigibson_tidybot"):
         FileUtils.preprocess_omnigibson_dataset(dataset_path)
 
     # create environment that was to collect source demonstrations

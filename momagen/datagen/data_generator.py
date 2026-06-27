@@ -598,11 +598,29 @@ class DataGenerator(object):
                     elif isinstance(env.robot, R1):
                         torso_link_name = "torso_link4"
                     else:
-                        raise ValueError("Robot type not supported")
-                    if subtask_object_name in ["robot_r1", torso_link_name]:
+                        # Robots without an articulated trunk (e.g. TidyBot); only consulted
+                        # when a task config references the robot/torso as object_ref
+                        torso_link_name = None
+                    if subtask_object_name is not None and subtask_object_name in ["robot_r1", torso_link_name]:
                         frame_to_use_for_src_object_pose = end_step_of_MP_local[current_phase_ind][arm_i][subtask_ind]
                     else:
                         frame_to_use_for_src_object_pose = selected_src_subtask_inds[0]
+                        # The object reference must be the object's SETTLED, manipulation-time pose. If the
+                        # source object moved between the subtask-start frame and the MP-end frame (e.g. it
+                        # had not finished settling when recording began -- TidyBot pick_cup: the cube sat
+                        # 47mm high at frame 0 then dropped to rest), the start frame is a stale reference
+                        # that yields mis-placed grasp targets. Detect that and fall back to the MP-end
+                        # frame (start of contact replay, where the object is settled and static through
+                        # the grasp). Strict no-op when the object was already static at the start (start
+                        # and MP-end poses identical), so existing well-formed sources are unaffected.
+                        if subtask_object_name is not None and subtask_object_name not in ["robot_r1", torso_link_name]:
+                            _mp_end_frame = end_step_of_MP_local[current_phase_ind][arm_i][subtask_ind]
+                            _obj_poses = src_ep_datagen_info.object_poses[subtask_object_name]
+                            if 0 <= _mp_end_frame < _obj_poses.shape[0]:
+                                _obj_moved = np.linalg.norm(
+                                    _obj_poses[selected_src_subtask_inds[0]][:3, 3] - _obj_poses[_mp_end_frame][:3, 3])
+                                if _obj_moved > 0.005:  # object shifted >5mm before contact -> start frame unsettled
+                                    frame_to_use_for_src_object_pose = _mp_end_frame
                     # get reference object pose from source demo
                     src_subtask_object_pose = src_ep_datagen_info.object_poses[subtask_object_name][frame_to_use_for_src_object_pose] if (subtask_object_name is not None) else None # 4 x 4
 
@@ -734,7 +752,8 @@ class DataGenerator(object):
                     elif isinstance(env.robot, R1):
                         torso_link_name = "torso_link4"
                     else:
-                        raise ValueError("Robot type not supported")
+                        # Robots without an articulated trunk (e.g. TidyBot)
+                        torso_link_name = None
                     if object_ref["arm_left"] is not None and object_ref["arm_left"] in ["robot_r1", torso_link_name]:
                         reachable_and_visible = True
                     else:         
@@ -829,14 +848,27 @@ class DataGenerator(object):
                         #                                                         ik_world_collision_check=True,
                         #                                                         emb_sel=CuRoboEmbodimentSelection.ARM_NO_TORSO)
                         
-                        eyes_pose = env.robot.links["eyes"].get_position_orientation()
-                        reachable_and_visible = env.primitive._target_in_reach_of_robot_and_visible(target_pose=eef_pose,
-                                                                                initial_joint_pos=env.robot.get_joint_positions(),
-                                                                                skip_obstacle_update=False,
-                                                                                ik_world_collision_check=True,
-                                                                                emb_sel=CuRoboEmbodimentSelection.ARM_NO_TORSO,
-                                                                                attach_obj=True,
-                                                                                eyes_pose=eyes_pose,)
+                        if "eyes" in env.robot.links:
+                            eyes_pose = env.robot.links["eyes"].get_position_orientation()
+                            reachable_and_visible = env.primitive._target_in_reach_of_robot_and_visible(target_pose=eef_pose,
+                                                                                    initial_joint_pos=env.robot.get_joint_positions(),
+                                                                                    skip_obstacle_update=False,
+                                                                                    ik_world_collision_check=True,
+                                                                                    emb_sel=CuRoboEmbodimentSelection.ARM_NO_TORSO,
+                                                                                    attach_obj=True,
+                                                                                    eyes_pose=eyes_pose,)
+                        else:
+                            # Robot without a head camera (e.g. TidyBot): MoMaGen's visibility
+                            # guarantee does not apply; gate the navigation decision on a
+                            # collision-aware reachability (IK) check only.
+                            retval = env.primitive._ik_solver_cartesian_to_joint_space(
+                                eef_pose,
+                                initial_joint_pos=env.robot.get_joint_positions(),
+                                skip_obstacle_update=False,
+                                ik_world_collision_check=True,
+                                emb_sel=CuRoboEmbodimentSelection.ARM_NO_TORSO,
+                            )
+                            reachable_and_visible = retval is not None
                         print("object to be manipulated is reachable and visible: ", reachable_and_visible)
                         # ======================== End of reachibility and visibility check =========================
                 # If we are in the debugging mode of "manipulation_only" for pick_cup task, don't check reachability and visibility

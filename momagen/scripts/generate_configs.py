@@ -46,6 +46,10 @@ TASK_NAMES_WITH_BASELINES = ["pick_cup", "tidy_table", "dishes_away", "clean_pan
 # task names that only have momagen configuration
 TASK_NAMES_MOMAGEN_ONLY = ["bringing_water", "picking_up_trash"]
 
+# single-arm TidyBot++ tasks (phantom right arm: real subtasks on arm_left,
+# arm_right object_ref null; source demos named tidybot_<task>.hdf5)
+TIDYBOT_TASK_NAMES = ["pick_cup"]
+
 BASE_BASE_CONFIG_PATH = os.path.join(momagen.__path__[0], "./datasets/base_configs")
 BASE_CONFIGS = [
     os.path.join(BASE_BASE_CONFIG_PATH, "r1_pick_cup.json"),
@@ -63,6 +67,8 @@ BASE_CONFIGS = [
     os.path.join(BASE_BASE_CONFIG_PATH, "r1_bringing_water.json"),
     # Add new base configs here
     os.path.join(BASE_BASE_CONFIG_PATH, "r1_picking_up_trash.json"),
+    # TidyBot++ tasks (keep in the same order as TIDYBOT_TASK_NAMES)
+    os.path.join(BASE_BASE_CONFIG_PATH, "tidybot_pick_cup.json"),
 ]
 
 def make_generators(base_configs):
@@ -76,10 +82,10 @@ def make_generators(base_configs):
         list: List of ConfigGenerator instances
     """
     # Common task configuration template
-    def create_task_config(task_name, baseline_suffix=""):
-        full_name = f"r1_{task_name}{baseline_suffix}"
+    def create_task_config(task_name, baseline_suffix="", robot_prefix="r1"):
+        full_name = f"{robot_prefix}_{task_name}{baseline_suffix}"
         return dict(
-            dataset_path=os.path.join(SRC_DATA_DIR, f"r1_{task_name}.hdf5"),
+            dataset_path=os.path.join(SRC_DATA_DIR, f"{robot_prefix}_{task_name}.hdf5"),
             dataset_name=full_name,
             generation_path=f"{OUTPUT_FOLDER}/{full_name}",
             tasks=[f"{full_name}_D0", f"{full_name}_D1", f"{full_name}_D2"],
@@ -105,6 +111,10 @@ def make_generators(base_configs):
     for task_name in TASK_NAMES_MOMAGEN_ONLY:
         # MoMaGen version only
         all_settings.append(create_task_config(task_name))
+
+    # Add configurations for TidyBot++ tasks (momagen only)
+    for task_name in TIDYBOT_TASK_NAMES:
+        all_settings.append(create_task_config(task_name, robot_prefix="tidybot"))
 
     assert len(base_configs) == len(all_settings)
     ret = []

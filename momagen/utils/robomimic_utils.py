@@ -85,7 +85,7 @@ def create_env(
         render_offscreen=render_offscreen,
         use_image_obs=use_image_obs,
         use_depth_obs=use_depth_obs,
-        # init_curobo=init_curobo,
+        init_curobo=init_curobo,
         policy_rollout=policy_rollout,
         manipulation_only=manipulation_only,
         real_robot_mode=real_robot_mode,

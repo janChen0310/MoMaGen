@@ -1,6 +1,7 @@
 """
 A collection of classes used to represent waypoints and trajectories.
 """
+import os
 import json
 import time
 import numpy as np
@@ -822,28 +823,26 @@ class WaypointTrajectory(object):
                 
                 # If at least one hand has motion planner waypoints, plan the motion
                 if len(left_mp_waypoints) > 0 or len(right_mp_waypoints) > 0:
-                    target_pos = {
-                        robot.eef_link_names["left"]: left_waypoint_pos,
-                        robot.eef_link_names["right"]: right_waypoint_pos,
-                    }
-                    target_quat = {
-                        robot.eef_link_names["left"]: left_waypoint_ori,
-                        robot.eef_link_names["right"]: right_waypoint_ori,
-                    }
+                    # If one of the arms does not have a ref object, exclude it from the MP targets.
+                    # Built by skipping (instead of building-then-deleting by hardcoded R1 link names)
+                    # so that single-arm robots, whose eef_link_names alias "left"/"right" to the same
+                    # link, keep the real arm's target instead of having the phantom arm overwrite it.
+                    arm_targets = [
+                        ("left", left_waypoint_pos, left_waypoint_ori),
+                        ("right", right_waypoint_pos, right_waypoint_ori),
+                    ]
+                    if object_ref["arm_right"] is None:
+                        arm_targets = arm_targets[:1]
+                    elif object_ref["arm_left"] is None:
+                        arm_targets = arm_targets[1:]
+                    target_pos = {robot.eef_link_names[arm]: pos for arm, pos, _ in arm_targets}
+                    target_quat = {robot.eef_link_names[arm]: ori for arm, _, ori in arm_targets}
                     emb_sel = CuRoboEmbodimentSelection.ARM_NO_TORSO
-                    
+
                     # Use OG to know attached objects
                     retval = self.obtain_attached_object(env, robot)
                     attached_obj = retval["attached_obj"]
                     attached_obj_scale = retval["attached_obj_scale"]
-
-                    # If one of the arm does not hav a ref object, remove it from the target pose of MP (will move this arm randomly in this case)
-                    if object_ref["arm_right"] is None:
-                        del target_pos["right_eef_link"]
-                        del target_quat["right_eef_link"]
-                    elif object_ref["arm_left"] is None:
-                        del target_pos["left_eef_link"]
-                        del target_quat["left_eef_link"]
 
                     print("ARM MP START")
                     eyes_target_pos, eyes_target_quat = None, None
@@ -939,10 +938,13 @@ class WaypointTrajectory(object):
                     for j_pos in q_traj:
 
                         # If option 2 was chosen for handling arm with no ref object, we can make the action for that arm as 0
-                        if object_ref["arm_left"] is None:
-                            j_pos[robot.arm_control_idx["left"]] = robot.get_joint_positions()[robot.arm_control_idx["left"]]
-                        elif object_ref["arm_right"] is None:
-                            j_pos[robot.arm_control_idx["right"]] = robot.get_joint_positions()[robot.arm_control_idx["right"]]
+                        # (skipped on single-arm robots: "left"/"right" alias the same physical arm there,
+                        # so freezing the phantom side would freeze the real arm mid-MP)
+                        if robot.n_arms > 1:
+                            if object_ref["arm_left"] is None:
+                                j_pos[robot.arm_control_idx["left"]] = robot.get_joint_positions()[robot.arm_control_idx["left"]]
+                            elif object_ref["arm_right"] is None:
+                                j_pos[robot.arm_control_idx["right"]] = robot.get_joint_positions()[robot.arm_control_idx["right"]]
 
                         action = robot.q_to_action(j_pos).cpu().numpy()
 
@@ -1103,6 +1105,13 @@ class WaypointTrajectory(object):
             # For each pair of waypoints, we extract the pose for each hand and then convert to action
             # We also overwrite the gripper actions with the ones from the waypoints
             init_global_env_step = env.global_env_step
+            # Iterate the closed-loop Jacobian-QP for MOMAGEN_REPLAY_NUM_REPEAT physics steps at each
+            # waypoint so it CONVERGES to that eef target before advancing. R1's QP is one damped
+            # least-squares step (~half the remaining gap) per call -- fine for R1, but TidyBot's long
+            # arm under-tracks, so one step per waypoint lags the descend and the gripper closes short.
+            # RECOMPUTING the QP each inner step (not holding one precomputed step) iterates it to
+            # convergence. num_repeat=1 is identical to stock R1.
+            num_repeat = int(os.environ.get("MOMAGEN_REPLAY_NUM_REPEAT", "1"))
             for left_waypoint, right_waypoint in zip(left_replay_waypoints, right_replay_waypoints):
                 pose = np.zeros((8, 4))
                 pose[:4, :] = left_waypoint.pose[:4, :]
@@ -1112,35 +1121,41 @@ class WaypointTrajectory(object):
                     pose[4:, :] = current_right_ee_pose
                 elif object_ref["arm_left"] is None:
                     pose[:4, :] = current_left_ee_pose
-                replay_action = env_interface.target_pose_to_action(target_pose=pose)
 
-                replay_action[env_interface.gripper_action_dim[0]] = left_waypoint.gripper_action[0]
-                replay_action[env_interface.gripper_action_dim[1]] = right_waypoint.gripper_action[1]
-
-                state = env.get_state()["states"]
-                temp_start_time = time.time()
-                obs, obs_info = env.get_obs_IL()
-                datagen_info = env_interface.get_datagen_info(action=replay_action)
-                env.step(replay_action, video_writer)
                 left_eef_pose = (pose[0:3, 3], T.mat2quat(th.tensor(pose[0:3, 0:3])))
                 right_eef_pose = (pose[4:7, 3], T.mat2quat(th.tensor(pose[4:7, 0:3])))
-                if enable_marker_vis:
-                    env.eef_current_marker_left.set_position_orientation(*robot.get_eef_pose("left"))
-                    env.eef_current_marker_right.set_position_orientation(*robot.get_eef_pose("right"))
-                    env.eef_goal_marker_left.set_position_orientation(*left_eef_pose)
-                    env.eef_goal_marker_right.set_position_orientation(*right_eef_pose)
-                local_env_step += 1
-                env.global_env_step += 1
-                states.append(state)
-                actions.append(replay_action)
-                observations.append(obs)
-                observations_info.append(json.dumps(obs_info))
-                datagen_infos.append(datagen_info)
-                cur_success_metrics = env.is_success()
-                if ref_obj is not None:
-                    self.check_ref_obj_visibility(env, obs, obs_info, ref_obj)
-                for k in success:
-                    success[k] = success[k] or cur_success_metrics[k]
+                for _ in range(num_repeat):
+                    replay_action = env_interface.target_pose_to_action(target_pose=pose)
+                    # TidyBot's single gripper aliases to BOTH arm halves -> gripper_action_dim is
+                    # [10,10]; writing the phantom (ref-less) arm's gripper SECOND clobbers the real
+                    # arm's command with the phantom's -1 (closed). Only write the gripper for arms
+                    # that have a real object_ref.
+                    if object_ref["arm_left"] is not None:
+                        replay_action[env_interface.gripper_action_dim[0]] = left_waypoint.gripper_action[0]
+                    if object_ref["arm_right"] is not None:
+                        replay_action[env_interface.gripper_action_dim[1]] = right_waypoint.gripper_action[1]
+                    state = env.get_state()["states"]
+                    temp_start_time = time.time()
+                    obs, obs_info = env.get_obs_IL()
+                    datagen_info = env_interface.get_datagen_info(action=replay_action)
+                    env.step(replay_action, video_writer)
+                    if enable_marker_vis:
+                        env.eef_current_marker_left.set_position_orientation(*robot.get_eef_pose("left"))
+                        env.eef_current_marker_right.set_position_orientation(*robot.get_eef_pose("right"))
+                        env.eef_goal_marker_left.set_position_orientation(*left_eef_pose)
+                        env.eef_goal_marker_right.set_position_orientation(*right_eef_pose)
+                    local_env_step += 1
+                    env.global_env_step += 1
+                    states.append(state)
+                    actions.append(replay_action)
+                    observations.append(obs)
+                    observations_info.append(json.dumps(obs_info))
+                    datagen_infos.append(datagen_info)
+                    cur_success_metrics = env.is_success()
+                    if ref_obj is not None:
+                        self.check_ref_obj_visibility(env, obs, obs_info, ref_obj)
+                    for k in success:
+                        success[k] = success[k] or cur_success_metrics[k]
 
             arm_replay_finish_time = time.time()
             phase_logs[env.execution_phase_ind]["arm_replay_execution_time"][0] = round(arm_replay_finish_time - arm_replay_start_time, 2)
@@ -1538,14 +1553,18 @@ class WaypointTrajectory(object):
             
             # If at least one hand has motion planner waypoints, plan the motion
             if len(left_mp_waypoints) > 0 or len(right_mp_waypoints) > 0:
-                target_pos = {
-                    robot.eef_link_names["left"]: left_waypoint_pos,
-                    robot.eef_link_names["right"]: right_waypoint_pos,
-                }
-                target_quat = {
-                    robot.eef_link_names["left"]: left_waypoint_ori,
-                    robot.eef_link_names["right"]: right_waypoint_ori,
-                }
+                # See the phantom-arm note at the skillgen MP block: targets are built by
+                # skipping ref-less arms (not deleted afterwards by hardcoded link names).
+                arm_targets = [
+                    ("left", left_waypoint_pos, left_waypoint_ori),
+                    ("right", right_waypoint_pos, right_waypoint_ori),
+                ]
+                if object_ref["arm_right"] is None:
+                    arm_targets = arm_targets[:1]
+                elif object_ref["arm_left"] is None:
+                    arm_targets = arm_targets[1:]
+                target_pos = {robot.eef_link_names[arm]: pos for arm, pos, _ in arm_targets}
+                target_quat = {robot.eef_link_names[arm]: ori for arm, _, ori in arm_targets}
                 # If both hands have motion planner waypoints, we use the arm + torso embodiment
                 # If only one of the hands has motion planner waypoints, we use the arm embodiment only because
                 # when we replay the waypoints for the other hand, we assume the torso is fixed.
@@ -1570,14 +1589,6 @@ class WaypointTrajectory(object):
                 retval = self.obtain_attached_object(env, robot)
                 attached_obj = retval["attached_obj"]
                 attached_obj_scale = retval["attached_obj_scale"]
-
-                # Option 2: If one of the arm does not hav a ref object, remove it from the target pose of MP (will move this arm randomly in this case)
-                if object_ref["arm_right"] is None:
-                    del target_pos["right_eef_link"]
-                    del target_quat["right_eef_link"]
-                elif object_ref["arm_left"] is None:
-                    del target_pos["left_eef_link"]
-                    del target_quat["left_eef_link"]
 
                 # # Check object visibility at start-of-manip step
                 # try:
@@ -1747,10 +1758,13 @@ class WaypointTrajectory(object):
                 for j_pos in q_traj:
 
                     # If option 2 was chosen for handling arm with no ref object, we can make the action for that arm as 0
-                    if object_ref["arm_left"] is None:
-                        j_pos[robot.arm_control_idx["left"]] = robot.get_joint_positions()[robot.arm_control_idx["left"]]
-                    elif object_ref["arm_right"] is None:
-                        j_pos[robot.arm_control_idx["right"]] = robot.get_joint_positions()[robot.arm_control_idx["right"]]
+                    # (skipped on single-arm robots: "left"/"right" alias the same physical arm there,
+                    # so freezing the phantom side would freeze the real arm mid-MP)
+                    if robot.n_arms > 1:
+                        if object_ref["arm_left"] is None:
+                            j_pos[robot.arm_control_idx["left"]] = robot.get_joint_positions()[robot.arm_control_idx["left"]]
+                        elif object_ref["arm_right"] is None:
+                            j_pos[robot.arm_control_idx["right"]] = robot.get_joint_positions()[robot.arm_control_idx["right"]]
 
                     action = robot.q_to_action(j_pos).cpu().numpy()
 
@@ -1939,7 +1953,11 @@ class WaypointTrajectory(object):
             
             init_global_env_step = env.global_env_step
             # For each pair of waypoints, we extract the pose for each hand and then convert to action
-            # We also overwrite the gripper actions with the ones from the waypoints
+            # We also overwrite the gripper actions with the ones from the waypoints.
+            # Hold each target for MOMAGEN_REPLAY_NUM_REPEAT physics steps so the position controller
+            # converges before advancing (else the arm lags the moving descend target; see the twin
+            # loop above). replay_action is computed once per target then held across the repeat.
+            num_repeat = int(os.environ.get("MOMAGEN_REPLAY_NUM_REPEAT", "1"))
             for left_waypoint, right_waypoint in zip(left_replay_waypoints, right_replay_waypoints):
                 pose = np.zeros((8, 4))
                 pose[:4, :] = left_waypoint.pose[:4, :]
@@ -1949,34 +1967,41 @@ class WaypointTrajectory(object):
                     pose[4:, :] = current_right_ee_pose
                 elif object_ref["arm_left"] is None:
                     pose[:4, :] = current_left_ee_pose
-                replay_action = env_interface.target_pose_to_action(target_pose=pose)
 
-                replay_action[env_interface.gripper_action_dim[0]] = left_waypoint.gripper_action[0]
-                replay_action[env_interface.gripper_action_dim[1]] = right_waypoint.gripper_action[1]
-
-                state = env.get_state()["states"]
-                temp_start_time = time.time()
-                obs, obs_info = env.get_obs_IL()
-                datagen_info = env_interface.get_datagen_info(action=replay_action)
-                env.step(replay_action, video_writer)
                 left_eef_pose = (pose[0:3, 3], T.mat2quat(th.tensor(pose[0:3, 0:3])))
                 right_eef_pose = (pose[4:7, 3], T.mat2quat(th.tensor(pose[4:7, 0:3])))
-                if enable_marker_vis:
-                    env.eef_current_marker_left.set_position_orientation(*robot.get_eef_pose("left"))
-                    env.eef_current_marker_right.set_position_orientation(*robot.get_eef_pose("right"))
-                    env.eef_goal_marker_left.set_position_orientation(*left_eef_pose)
-                    env.eef_goal_marker_right.set_position_orientation(*right_eef_pose)
-                local_env_step += 1
-                env.global_env_step += 1
-                states.append(state)
-                actions.append(replay_action)
-                observations.append(obs)
-                observations_info.append(json.dumps(obs_info))
-                datagen_infos.append(datagen_info)
-                cur_success_metrics = env.is_success()
-                self.check_ref_obj_visibility(env, obs, obs_info, ref_obj)
-                for k in success:
-                    success[k] = success[k] or cur_success_metrics[k]
+                for _ in range(num_repeat):
+                    # Recompute the closed-loop QP each step so it iterates to convergence at this
+                    # waypoint (see the twin loop above); num_repeat=1 == stock R1.
+                    replay_action = env_interface.target_pose_to_action(target_pose=pose)
+                    # Only write the gripper for arms with a real object_ref (see twin loop): TidyBot's
+                    # single gripper aliases to both halves, so the phantom arm's -1 (closed) would
+                    # otherwise clobber the real arm's command.
+                    if object_ref["arm_left"] is not None:
+                        replay_action[env_interface.gripper_action_dim[0]] = left_waypoint.gripper_action[0]
+                    if object_ref["arm_right"] is not None:
+                        replay_action[env_interface.gripper_action_dim[1]] = right_waypoint.gripper_action[1]
+                    state = env.get_state()["states"]
+                    temp_start_time = time.time()
+                    obs, obs_info = env.get_obs_IL()
+                    datagen_info = env_interface.get_datagen_info(action=replay_action)
+                    env.step(replay_action, video_writer)
+                    if enable_marker_vis:
+                        env.eef_current_marker_left.set_position_orientation(*robot.get_eef_pose("left"))
+                        env.eef_current_marker_right.set_position_orientation(*robot.get_eef_pose("right"))
+                        env.eef_goal_marker_left.set_position_orientation(*left_eef_pose)
+                        env.eef_goal_marker_right.set_position_orientation(*right_eef_pose)
+                    local_env_step += 1
+                    env.global_env_step += 1
+                    states.append(state)
+                    actions.append(replay_action)
+                    observations.append(obs)
+                    observations_info.append(json.dumps(obs_info))
+                    datagen_infos.append(datagen_info)
+                    cur_success_metrics = env.is_success()
+                    self.check_ref_obj_visibility(env, obs, obs_info, ref_obj)
+                    for k in success:
+                        success[k] = success[k] or cur_success_metrics[k]
 
             arm_replay_finish_time = time.time()
             phase_logs[env.execution_phase_ind]["arm_replay_execution_time"][0] = round(arm_replay_finish_time - arm_replay_start_time, 2)

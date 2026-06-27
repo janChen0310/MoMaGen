@@ -2,6 +2,7 @@
 MoMaGen environment interface classes for OmniGibson environments.
 Refactored to use configuration-driven tasks instead of hardcoded classes.
 """
+import os
 import numpy as np
 from typing import Dict, Any
 from dataclasses import dataclass, field
@@ -12,9 +13,38 @@ import omnigibson as og
 import omnigibson.utils.transform_utils as T
 from omnigibson.object_states import *
 from omnigibson.controllers import ControlType
+from omnigibson.utils.usd_utils import ControllableObjectViewAPI
 
 from momagen.env_interfaces.base import MG_EnvInterface
 from momagen.datagen.datagen_info import DatagenInfo
+
+
+# --- GUARD: PhysX's PxArticulationJointReducedCoordinate.setDriveTarget rejects revolute drive
+# targets outside [-2pi, 2pi]. TidyBot's Kinova continuous joints (notably joint_3, dof 8) get
+# targets just over 2pi from the controller/normalization path (verified via JC_DRIVE_OOB:
+# joint_3 -> 6.288/6.331); upstream clamps (q_to_action, the replay QP) don't fully prevent it.
+# Unchecked, the flood of PhysX errors destabilizes the articulation (physics view -> None -> sim
+# stops). Clamp revolute-joint drive targets to [-2pi, 2pi] at the final sink before PhysX. ---
+_JC_ORIG_SJPT = ControllableObjectViewAPI.set_joint_position_targets.__func__
+_JC_REV_DOF = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12}  # TidyBot revolute dofs: base rx,ry,rz + arm joint_1..7
+_JC_LIM = 2.0 * np.pi - 0.02
+def _jc_clamp_set_joint_position_targets(cls, prim_path, positions, indices):
+    try:
+        if "tidybot" in str(prim_path):
+            idx_list = indices.tolist() if hasattr(indices, "tolist") else list(indices)
+            rev = [k for k, di in enumerate(idx_list) if int(di) in _JC_REV_DOF]
+            if rev:
+                positions = positions.clone() if hasattr(positions, "clone") else positions.copy()
+                for k in rev:
+                    v = float(positions[k])
+                    if v > _JC_LIM:
+                        positions[k] = _JC_LIM
+                    elif v < -_JC_LIM:
+                        positions[k] = -_JC_LIM
+    except Exception:
+        pass
+    return _JC_ORIG_SJPT(cls, prim_path, positions, indices)
+ControllableObjectViewAPI.set_joint_position_targets = classmethod(_jc_clamp_set_joint_position_targets)
 
 
 @dataclass
@@ -583,6 +613,288 @@ class OmniGibsonInterfaceBimanual(OmniGibsonInterface):
         return target_pose
 
 
+class OmniGibsonInterfaceTidyBot(OmniGibsonInterfaceBimanual):
+    """
+    MoMaGen environment interface for the single-arm TidyBot++ robot, presented
+    through the bimanual API (the "phantom arm" scheme).
+
+    The TidyBot robot class aliases the bimanual arm names ("left"/"right") to its
+    single arm "0", so the inherited bimanual methods (get_robot_eef_pose -> 8x4
+    with both halves identical, get_datagen_info, action_to_gripper_action -> 2
+    identical entries) work unchanged. Task configs must put the real subtasks on
+    arm_left and set arm_right's object_ref to null everywhere.
+
+    Only the pose<->action converters are overridden: the bimanual versions
+    iterate both arms with per-arm controllers, while here a single Jacobian-QP
+    solve on the left (real) half of the 8x4 pose suffices.
+
+    Gripper action convention (same as R1): >= 0 opens, < 0 closes.
+    """
+
+    INTERFACE_TYPE = "omnigibson_tidybot"
+
+    ARM = "0"
+
+    # control_dict["eef_0_jacobian_relative"] caches link_idx = _articulation_view.get_body_index
+    # (eef_link), which TRANSIENTLY returns None mid-generation (after sim manipulation) -> the
+    # fcn then does `n_links - None` -> TypeError. eef_link is in fact a real body with a stable
+    # index (verified via av.body_names); we resolve the relative-jacobian row from the stable
+    # body_names metadata and cache it, with this hardcoded fallback (eef_link is body index 17
+    # of the 23-entry TidyBot articulation body list).
+    EEF_BODY_INDEX_FALLBACK = 17
+
+    def _eef_jac_row(self):
+        """Row of eef_link in ControllableObjectViewAPI.get_relative_jacobian, computed once and
+        cached. Uses stable body_names metadata (then get_body_index, then a hardcoded fallback)
+        rather than get_body_index alone, which returns None at points during generation."""
+        if getattr(self, "_jac_row_cached", None) is not None:
+            return self._jac_row_cached
+        link = self.robot.eef_link_names[self.ARM]
+        av = self.robot._articulation_view
+        bidx = None
+        try:
+            bnames = av.body_names
+            if bnames is not None:
+                bidx = list(bnames).index(link)
+        except Exception:
+            bidx = None
+        if bidx is None:
+            try:
+                idx = av.get_body_index(link)
+                bidx = None if idx is None else int(idx)
+            except Exception:
+                bidx = None
+        if bidx is None:
+            bidx = self.EEF_BODY_INDEX_FALLBACK
+        self._jac_row_cached = -(int(self.robot.n_links) - bidx)
+        return self._jac_row_cached
+
+    def _get_cmg(self):
+        """Lazily build a CuRobo motion generator for replay IK (the env's own CuRobo lives on the
+        robomimic wrapper, which the interface doesn't hold; self.env is the underlying OG env)."""
+        if getattr(self, "_cmg", None) is None:
+            from omnigibson.action_primitives.curobo import CuRoboMotionGenerator, CuRoboEmbodimentSelection
+            scene_model = (
+                self.env.scene.scene_model.lower()
+                if isinstance(self.env.scene, og.scenes.interactive_traversable_scene.InteractiveTraversableScene)
+                else "empty"
+            )
+            self._cmg = CuRoboMotionGenerator(
+                robot=self.robot, batch_size=6, use_cuda_graph=False,
+                scene_model=scene_model, use_eyes_targets=False,
+                device=f"cuda:{os.environ.get('OMNIGIBSON_GPU_ID', '0')}",
+            )
+            self._emb_sel = CuRoboEmbodimentSelection.ARM_NO_TORSO
+            self._cmg_eef_link = self.robot.eef_link_names[self.ARM]
+            self._cmg_name_to_dof = {n: i for i, n in enumerate(self._cmg.robot_joint_names)}
+            cube = self.robot.scene.object_registry("name", "pick_cube")
+            self._cmg.update_obstacles(ignore_objects=[cube] if cube is not None else None)
+        return self._cmg
+
+    def _curobo_ik_arm_q(self, tgt_pos, tgt_quat):
+        """CuRobo IK for a WORLD eef target -> the arm's joint-position vector (tensor) or None.
+        Analytic from the target pose (no eef-pose feedback), seeded from the current config.
+
+        Two things keep the descend in the GOOD kinematic branch (the source executor used a
+        collision-aware MP path, so it never branch-jumped; per-waypoint IK can):
+          * ik_world_collision_check=True -- filters out arm-through-table / swung-to-the-side
+            solutions (the cube is ignored as an obstacle in _get_cmg, so the gripper can still
+            descend onto it). Matches the source executor's ik_goal.
+          * pick the successful solution NEAREST the current arm config (continuity) rather than
+            the first -- avoids snapping to a far IK branch between adjacent waypoints.
+        """
+        cmg = self._get_cmg()
+        bs = cmg.batch_size
+        p = th.as_tensor(np.asarray(tgt_pos), dtype=th.float32)
+        q = th.as_tensor(np.asarray(tgt_quat.cpu() if hasattr(tgt_quat, "cpu") else tgt_quat), dtype=th.float32)
+        tp = {self._cmg_eef_link: th.stack([p for _ in range(bs)])}
+        tq = {self._cmg_eef_link: th.stack([q for _ in range(bs)])}
+        try:
+            succ, js = cmg.compute_trajectories(
+                target_pos=tp, target_quat=tq, initial_joint_pos=None, is_local=False,
+                max_attempts=50, timeout=20.0, ik_fail_return=10, enable_finetune_trajopt=False,
+                finetune_attempts=0, return_full_result=False, success_ratio=1.0 / bs,
+                skip_obstacle_update=True, ik_only=True, ik_world_collision_check=False,
+                emb_sel=self._emb_sel,
+            )
+        except Exception:
+            return None
+        idx = th.where(succ)[0].cpu()
+        if len(idx) == 0:
+            return None
+        arm_idx = self.robot.arm_control_idx[self.ARM]
+        cur_arm = self.robot.get_joint_positions()[arm_idx].detach().cpu().float()
+        best_arm_q, best_dist = None, None
+        for k in idx.tolist():
+            sol = js[int(k)]
+            pos = th.as_tensor(sol.position).detach().cpu().float().flatten()
+            names = list(sol.joint_names)
+            full_q = self.robot.get_joint_positions().clone().cpu().float()
+            for jn, v in zip(names, pos):
+                di = self._cmg_name_to_dof.get(jn)
+                if di is not None:
+                    full_q[di] = float(v)
+            arm_q = full_q[arm_idx]
+            d = float((arm_q - cur_arm).abs().sum())
+            if best_dist is None or d < best_dist:
+                best_dist, best_arm_q = d, arm_q
+        return best_arm_q
+
+    def _curobo_mp_q(self, tgt_pos, tgt_quat):
+        """Full collision-aware MOTION PLAN (cube ignored) to the target -> final arm config (tensor)
+        or None. Stronger than pure IK: trajopt finds configs/paths pure IK misses. Matches the
+        source executor's plan_mp (which reached the grasp pose reliably)."""
+        cmg = self._get_cmg()
+        bs = cmg.batch_size
+        p = th.as_tensor(np.asarray(tgt_pos), dtype=th.float32)
+        qq = th.as_tensor(np.asarray(tgt_quat.cpu() if hasattr(tgt_quat, "cpu") else tgt_quat), dtype=th.float32)
+        tp = {self._cmg_eef_link: th.stack([p for _ in range(bs)])}
+        tq = {self._cmg_eef_link: th.stack([qq for _ in range(bs)])}
+        try:
+            results, paths = cmg.compute_trajectories(
+                target_pos=tp, target_quat=tq, initial_joint_pos=None, is_local=False,
+                max_attempts=50, timeout=30.0, ik_fail_return=10, enable_finetune_trajopt=True,
+                finetune_attempts=1, return_full_result=True, success_ratio=1.0 / bs,
+                skip_obstacle_update=True, ik_only=False, ik_world_collision_check=False,
+                emb_sel=self._emb_sel,
+            )
+        except Exception as e:
+            return None
+        idx = th.where(results[0].success)[0].cpu()
+        if len(idx) == 0:
+            return None
+        q_traj = cmg.path_to_joint_trajectory(paths[int(idx[0])], get_full_js=True, emb_sel=self._emb_sel).cpu().float()
+        return q_traj[-1][self.robot.arm_control_idx[self.ARM]]
+
+    def target_pose_to_action(self, target_pose, relative=True):
+        """MoMaGen-faithful control: R1's live-Jacobian damped-QP, on TidyBot's single arm.
+
+        One damped least-squares joint step toward the world eef target per call, using R1's
+        EXACT scheme + params (proportional_gain 0.5, velocity_gain 0.5, eps 1e-6, integrate
+        q + q_dot*dt, clip to limits). This is the same method MoMaGen uses for R1; the only
+        TidyBot modifications are (a) the single (real) arm instead of left+right, and (b) the
+        eef relative jacobian taken via the crash-safe manual body-row when R1's control_dict
+        entry trips the transient get_body_index->None.
+
+        This only tracks because the arm runs as an ABSOLUTE-position JointController -- the
+        env_omnigibson reload_controllers was reverting arm_0 to delta mode (absolute targets
+        applied as current_qpos+target); fixed by adding the arm_0 key to that reload config.
+        """
+        # Legacy
+        del relative
+
+        target_pose = th.from_numpy(target_pose.astype(np.float32))[:4, :]  # left/real half (world)
+
+        action = np.zeros_like(self.robot.action_space.sample())
+        control_dict = self.robot.get_control_dict()
+
+        arm_name = self.ARM
+        arm_controller = self.robot.controllers[f"arm_{arm_name}"]
+
+        # Compute the eef target pose in the robot frame, and the delta twist from the current eef
+        target_pos, target_quat = T.relative_pose_transform(*T.mat2pose(target_pose), *self.robot.get_position_orientation())
+        pos_relative, quat_relative = self.robot.get_relative_eef_pose(arm_name)
+        dpos = target_pos - pos_relative
+        dori = T.orientation_error(T.quat2mat(target_quat), T.quat2mat(quat_relative))
+        err = th.cat([dpos, dori])
+
+        manipulation_dof_idx = arm_controller.dof_idx
+
+        # eef relative jacobian: R1's control_dict entry, with the manual body-row as a crash-safe
+        # fallback (numerically identical -- the control_dict builder's get_body_index transiently
+        # returns None mid-generation -> n_links-None TypeError).
+        try:
+            j_eef_full = control_dict[f"eef_{arm_name}_jacobian_relative"]
+        except Exception:
+            start_idx = 0 if self.robot.fixed_base else 6
+            j_eef_full = ControllableObjectViewAPI.get_relative_jacobian(self.robot.articulation_root_path)[
+                self._eef_jac_row(), :, start_idx : start_idx + self.robot.n_joints
+            ]
+        j_eef = j_eef_full[:, manipulation_dof_idx]
+
+        q = control_dict["joint_position"][manipulation_dof_idx]
+        q_lower_limit = arm_controller._control_limits[ControlType.get_type("position")][0][manipulation_dof_idx]
+        q_upper_limit = arm_controller._control_limits[ControlType.get_type("position")][1][manipulation_dof_idx]
+        q_dot_lower_limit = arm_controller._control_limits[ControlType.get_type("velocity")][0][manipulation_dof_idx]
+        q_dot_upper_limit = arm_controller._control_limits[ControlType.get_type("velocity")][1][manipulation_dof_idx]
+
+        vel_err = err.numpy() / og.sim.get_physics_dt()
+        proportional_gain = 0.5
+
+        n = j_eef.shape[1]
+        epsilon = 1e-6
+        P = j_eef.T @ j_eef + epsilon * np.eye(j_eef.shape[1])
+        r = -proportional_gain * vel_err @ j_eef
+
+        velocity_gain = 0.5
+        q_dot_upper_limit_by_joint_limit = velocity_gain * (q_upper_limit - q) / og.sim.get_physics_dt()
+        q_dot_lower_limit_by_joint_limit = velocity_gain * (q_lower_limit - q) / og.sim.get_physics_dt()
+        q_dot_upper_limit = np.minimum(q_dot_upper_limit, q_dot_upper_limit_by_joint_limit)
+        q_dot_lower_limit = np.maximum(q_dot_lower_limit, q_dot_lower_limit_by_joint_limit)
+
+        G = np.vstack([np.eye(n), -np.eye(n)])
+        h = np.concatenate([q_dot_upper_limit, -q_dot_lower_limit])
+
+        q_dot = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(0.5 * cp.quad_form(q_dot, P) + r.T @ q_dot), [G @ q_dot <= h])
+        try:
+            prob.solve()
+        except cp.error.SolverError:
+            target_joint_pos = q
+        else:
+            if prob.status == "optimal":
+                target_joint_pos = q + q_dot.value * og.sim.get_physics_dt()
+            else:
+                target_joint_pos = q
+
+        # Keep strictly inside limits (the QP can exceed them by ~1e-5)
+        target_joint_pos = np.clip(target_joint_pos, q_lower_limit + 0.02, q_upper_limit - 0.02)
+
+        action[self.robot.controller_action_idx[f"arm_{arm_name}"]] = arm_controller._reverse_preprocess_command(
+            th.as_tensor(target_joint_pos, dtype=th.float32)
+        )
+
+        # No-op for the base (gripper is filled by callers)
+        for name, controller in self.robot.controllers.items():
+            if name == "base":
+                action[self.robot.controller_action_idx[name]] = controller.compute_no_op_action(control_dict)
+
+        return action
+
+    def action_to_target_pose(self, action, relative=True):
+        """
+        Inverse of @target_pose_to_action; returns the bimanual 8x4 format with
+        both halves equal to the single arm's target pose.
+        """
+        # Legacy
+        del relative
+
+        action = th.from_numpy(action.astype(np.float32))
+
+        arm_action = action[self.robot.arm_action_idx[self.ARM]]
+        arm_command = self.robot.controllers[f"arm_{self.ARM}"]._preprocess_command(arm_action)
+
+        # The arm command is absolute target joint positions; convert to an eef
+        # pose via the current eef pose + the commanded joint delta through the
+        # relative jacobian (small-displacement approximation, consistent with
+        # how target_pose_to_action produces commands)
+        control_dict = self.robot.get_control_dict()
+        manipulation_dof_idx = self.robot.controllers[f"arm_{self.ARM}"].dof_idx
+        q = control_dict["joint_position"][manipulation_dof_idx]
+        j_eef = control_dict[f"eef_{self.ARM}_jacobian_relative"][:, manipulation_dof_idx]
+        twist = j_eef @ (arm_command - q)
+
+        pos_relative, quat_relative = self.robot.get_relative_eef_pose(self.ARM)
+        target_pos = pos_relative + twist[:3]
+        dori = T.quat2mat(T.axisangle2quat(twist[3:6]))
+        target_quat = T.mat2quat(dori @ T.quat2mat(quat_relative))
+
+        target_pose = T.pose2mat(T.pose_transform(*self.robot.get_position_orientation(), target_pos, target_quat))
+        target_pose = target_pose.numpy()
+
+        return np.concatenate([target_pose, target_pose], axis=0)  # 8x4
+
+
 # Task configuration definitions
 TASK_CONFIGS = {
 
@@ -674,13 +986,41 @@ TASK_CONFIGS = {
         },
     ),
 
+    "tidybot_pick_cup": TaskConfig(
+        name="tidybot_pick_cup",
+        tracked_objects={
+            # pick_cube is the grasped object: object_ref for the manipulation subtask, so its
+            # pose MUST be in datagen_info for the trajectory transform. (The Hand-E can't wrap
+            # the 71mm coffee cup, so we pick an added 30x30x60mm cube instead.)
+            "pick_cube": "pick_cube",
+            "coffee_cup_7": "coffee_cup_7",
+            "breakfast_table_6": "breakfast_table_6",
+        },
+    ),
+
     # ------------------------------------------------------------------------------------------------
     # Add new task configs here
     # Note 1: tracked_objects is a dictionary with the same key and value. Furthermore, the tracked_object is the
     # OG specific name of the object which you can find by clicking on the object on the GUI
     # Note 2: we are currently not using the termination_signals for the data generation, so you can leave it empty
     # ------------------------------------------------------------------------------------------------
-   
+
+    "datagen_pick": TaskConfig(
+        name="datagen_pick",
+        tracked_objects={
+            "coffee_cup_7": "coffee_cup_7",
+            "breakfast_table_6": "breakfast_table_6",
+        },
+    ),
+
+    "r1_put_away_cup": TaskConfig(
+        name="r1_put_away_cup",
+        tracked_objects={
+            "coffee_cup_7": "coffee_cup_7",
+            "breakfast_table_6": "breakfast_table_6",
+        },
+    ),
+
 }
 
 # Backward compatibility - create legacy classes that use the new system
@@ -723,6 +1063,10 @@ class MG_R1BringingWater(OmniGibsonInterfaceBimanual):
 class MG_R1PickingUpTrash(OmniGibsonInterfaceBimanual):
     def __init__(self, env):
         super().__init__(env, TASK_CONFIGS["r1_picking_up_trash"])
+
+class MG_TidyBotPickCup(OmniGibsonInterfaceTidyBot):
+    def __init__(self, env):
+        super().__init__(env, TASK_CONFIGS["tidybot_pick_cup"])
 
 
 

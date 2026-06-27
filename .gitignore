@@ -7,3 +7,9 @@ dist/
 
 mimicgen/
 temp/
+
+# TidyBot integration — scratch / generated outputs (not committed)
+.tmp/
+.vscode/
+generated_data/
+momagen/scripts/jc_probe_held_target.py
