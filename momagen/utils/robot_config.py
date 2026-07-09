@@ -192,5 +192,10 @@ def configure_tidybot_env_meta(env_meta):
     # (b) crashes for TidyBot (_find_gripper_raycast_collisions KeyError on the
     # phantom-arm "0" key). TidyBot is a real parallel-jaw gripper -> physical mode.
     robot_kwargs["grasping_mode"] = "physical"
+    # Force self-collisions OFF. Some R1 templates (e.g. picking_up_trash) carry
+    # self_collisions=True; TidyBot's imported collision meshes overlap slightly between
+    # adjacent links, so inheriting True makes the robot vibrate at rest (constant internal
+    # contact forces) and renders the base uncontrollable.
+    robot_kwargs["self_collisions"] = False
 
     return env_meta

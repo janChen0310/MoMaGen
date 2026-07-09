@@ -336,7 +336,12 @@ class DataGenerator(object):
 
     def obtain_attached_object(self, env, robot, attached_obj_new={}, attached_obj_scale={}):
         attached_object_names = {}
-        for local_arm_side in ["left", "right"]:  
+        # TidyBot has a SINGLE physical gripper; its phantom "right" arm's is_grasping aliases to
+        # the real (left) gripper, so it double-reports the grasped object and trips the phantom
+        # arm's attached-object mismatch check (right_expected=None but right detected). Only
+        # inspect the real (left) arm for single-arm TidyBot.
+        arm_sides = ["left"] if type(robot).__name__ == "TidyBot" else ["left", "right"]
+        for local_arm_side in arm_sides:
             is_grasping = robot.is_grasping(arm=local_arm_side)
             if is_grasping == og.controllers.IsGraspingState.TRUE: 
                 # Find the object that the robot is grapsing in that arm
@@ -346,9 +351,15 @@ class DataGenerator(object):
                     if all(keyword not in task_relevant_obj.name for keyword in ["table", "shelf", "bar", "sink"]):
                         is_grasping_candidate_obj = robot.is_grasping(arm=local_arm_side, candidate_obj=task_relevant_obj)
                         if is_grasping_candidate_obj == og.controllers.IsGraspingState.TRUE:
-                            print(f"arm {local_arm_side} is_grasping {task_relevant_obj.root_link.name}") 
-                            attached_obj_new[f"{local_arm_side}_eef_link"] = task_relevant_obj.root_link
-                            attached_obj_scale[f"{local_arm_side}_eef_link"] = 0.9
+                            print(f"arm {local_arm_side} is_grasping {task_relevant_obj.root_link.name}")
+                            # Key the CuRobo attachment dict by the robot's ACTUAL eef link name, not the
+                            # hardcoded "{side}_eef_link". R1's eef links happen to be "left_eef_link"/
+                            # "right_eef_link", but TidyBot's single arm's eef link is "eef_link" -- the
+                            # hardcoded key -> KeyError in _attach_objects_to_robot during the carry-nav
+                            # phase (curobo_attached_object_link_names is keyed by the real eef link name).
+                            _eef_key = robot.eef_link_names[local_arm_side]
+                            attached_obj_new[_eef_key] = task_relevant_obj.root_link
+                            attached_obj_scale[_eef_key] = 0.9
                             attached_object_names[local_arm_side] = task_relevant_obj.name
                             # robot can only be holding one object at a time
                             break

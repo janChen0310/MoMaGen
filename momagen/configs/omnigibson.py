@@ -171,3 +171,18 @@ class TidyBotPickCup(MG_Config):
         # allow downstream code to completely replace the task spec from an external config
         self.task.task_spec.do_not_lock_keys()
 
+
+
+class TidyBotPickingUpTrash(MG_Config):
+    """
+    datagen_picking_up_trash in house_single_floor with the single-arm TidyBot++ robot:
+    grasp the (0.5-scaled) can_of_soda_595 off the kitchen counter, drop it into
+    trash_can_596 on the floor. Bimanual task-spec format with a phantom right arm.
+    """
+    NAME = "tidybot_picking_up_trash"
+    TYPE = "omnigibson_bimanual"
+
+    def task_config(self):
+        self.task.task_spec.phase1 = dict()
+        # allow downstream code to completely replace the task spec from an external config
+        self.task.task_spec.do_not_lock_keys()

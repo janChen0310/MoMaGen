@@ -460,10 +460,14 @@ class WaypointTrajectory(object):
         grasp_action = {"left": 1.0, "right": 1.0}
         attached_obj = {}
         attached_obj_scale = {}
-        for local_arm_side in ["left", "right"]:  
+        # TidyBot has a SINGLE physical gripper whose phantom "right" arm's is_grasping aliases to
+        # the real (left) gripper. Iterating both would (a) double-attach the same object and (b) key
+        # the CuRobo attachment by "right_eef_link" which TidyBot lacks. Only the real (left) arm.
+        arm_sides = ["left"] if type(robot).__name__ == "TidyBot" else ["left", "right"]
+        for local_arm_side in arm_sides:
             is_grasping = robot.is_grasping(arm=local_arm_side)
             # print("local_arm_side is_grasping: ", local_arm_side, is_grasping)
-            if is_grasping == og.controllers.IsGraspingState.TRUE: 
+            if is_grasping == og.controllers.IsGraspingState.TRUE:
                 grasp_action[local_arm_side] = -1.0
                 # Find the object that the robot is grapsing in that arm
                 task_relevant_objs = env._get_task_relevant_objs()
@@ -471,11 +475,15 @@ class WaypointTrajectory(object):
                     # TODO: remove the stationay object hardcoding. Make it more general
                     if all(keyword not in task_relevant_obj.name for keyword in ["table", "shelf", "bar", "sink"]):
                         is_grasping_candidate_obj = robot.is_grasping(arm=local_arm_side, candidate_obj=task_relevant_obj)
-                        # print("local_arm_side is_grasping_candidate_obj: ", local_arm_side, is_grasping_candidate_obj, task_relevant_obj.root_link.name) 
+                        # print("local_arm_side is_grasping_candidate_obj: ", local_arm_side, is_grasping_candidate_obj, task_relevant_obj.root_link.name)
                         if is_grasping_candidate_obj == og.controllers.IsGraspingState.TRUE:
-                            print(f"arm {local_arm_side} is_grasping {task_relevant_obj.root_link.name}") 
-                            attached_obj[f"{local_arm_side}_eef_link"] = task_relevant_obj.root_link
-                            attached_obj_scale[f"{local_arm_side}_eef_link"] = 0.9
+                            print(f"arm {local_arm_side} is_grasping {task_relevant_obj.root_link.name}")
+                            # Key by the robot's ACTUAL eef link name (TidyBot: "eef_link"; R1:
+                            # "left_eef_link") -- the hardcoded "{side}_eef_link" KeyErrors in
+                            # _attach_objects_to_robot for TidyBot's carry-nav phase.
+                            _eef_key = robot.eef_link_names[local_arm_side]
+                            attached_obj[_eef_key] = task_relevant_obj.root_link
+                            attached_obj_scale[_eef_key] = 0.9
                             # robot can only be holding one object at a time
                             break
         retval = dict(
@@ -1126,6 +1134,30 @@ class WaypointTrajectory(object):
                 right_eef_pose = (pose[4:7, 3], T.mat2quat(th.tensor(pose[4:7, 0:3])))
                 for _ in range(num_repeat):
                     replay_action = env_interface.target_pose_to_action(target_pose=pose)
+                    # [JC_REPLAY_DEBUG] numeric trace: replay target vs actual eef vs can/fingers
+                    if os.environ.get("JC_REPLAY_DEBUG") == "1":
+                        try:
+                            _wi = getattr(self, "_jc_wi", 0); self._jc_wi = _wi + 1
+                            _ga = float(left_waypoint.gripper_action[0])
+                            _prev_ga = getattr(self, "_jc_prev_ga", None); self._jc_prev_ga = _ga
+                            _close_edge = _prev_ga is not None and _ga < 0 <= _prev_ga
+                            if _wi % 25 == 0 or _close_edge:
+                                import numpy as _np
+                                _tgt = _np.array(pose[0:3, 3], float)
+                                _ep, _eq = robot.get_eef_pose("left")
+                                _ep = _np.array(_ep, float)
+                                _can = robot.scene.object_registry("name", "can_of_soda_595")
+                                _cp = _np.array(_can.get_position_orientation()[0], float) if _can is not None else _np.zeros(3)
+                                _lf = _np.array(robot.links["hande_left_finger"].get_position_orientation()[0], float)
+                                _rf = _np.array(robot.links["hande_right_finger"].get_position_orientation()[0], float)
+                                _mid = (_lf + _rf) / 2.0
+                                print("JCDBG wi=%d ga=%+.1f tgt=%s eef=%s trackerr=%.3f can=%s fingmid=%s mid-can=%s%s" % (
+                                    _wi, _ga, _np.round(_tgt, 3).tolist(), _np.round(_ep, 3).tolist(),
+                                    float(_np.linalg.norm(_tgt - _ep)), _np.round(_cp, 3).tolist(),
+                                    _np.round(_mid, 3).tolist(), _np.round(_mid - _cp, 3).tolist(),
+                                    "  <<< CLOSE EDGE" if _close_edge else ""), flush=True)
+                        except Exception as _ex:
+                            print("JCDBG err", _ex, flush=True)
                     # TidyBot's single gripper aliases to BOTH arm halves -> gripper_action_dim is
                     # [10,10]; writing the phantom (ref-less) arm's gripper SECOND clobbers the real
                     # arm's command with the phantom's -1 (closed). Only write the gripper for arms
@@ -1262,6 +1294,15 @@ class WaypointTrajectory(object):
         env.primitive._tracking_object = ref_obj
         print("Will track object for this sub-step: ", ref_obj.name)
         robot = env.env.robots[0]
+        # [JC_REANCHOR] Capture the ref object's pose at phase start. The replay waypoints were
+        # transformed to the ref pose read BEFORE navigation; the base drive can nudge/shove a
+        # light object (e.g. the trash can) en route, leaving the release aimed at a stale pose.
+        # The delta is applied to the replay targets below (translation-only, xy).
+        self._jc_ref_obj = ref_obj
+        try:
+            self._jc_ref_pose_start = np.array(ref_obj.get_position_orientation()[0].cpu(), dtype=float)
+        except Exception:
+            self._jc_ref_pose_start = None
         
         # ================================= Base Navigation ==================================
         if phase_type == "navigation":
@@ -1752,7 +1793,9 @@ class WaypointTrajectory(object):
                 q_traj = env.cmg.path_to_joint_trajectory(traj_path, get_full_js=True, emb_sel=emb_sel)
                 # If we use curobo joint space planning instead of Cartesian space planning, we need to downsample the trajectory 
                 # q_traj = q_traj[::50]
-                q_traj = th.stack(env.primitive._add_linearly_interpolated_waypoints(plan=q_traj, max_inter_dist=0.01))
+                # [JC] Arm-MP execution density: THE knob for execute()'s MP speed (the
+                # primitives-level knob only affects nav). 0.025 => ~2.5x faster transits.
+                q_traj = th.stack(env.primitive._add_linearly_interpolated_waypoints(plan=q_traj, max_inter_dist=float(os.environ.get("JC_MP_INTER_DIST", "0.01"))))
                 q_traj = q_traj.cpu()
                 mp_actions = []
                 for j_pos in q_traj:
@@ -1769,9 +1812,14 @@ class WaypointTrajectory(object):
                     action = robot.q_to_action(j_pos).cpu().numpy()
 
                     # Add gripper actions from the original waypoints (we already checked that they are the same across MP trajectories)
-                    if left_gripper_action is not None:
+                    # [JC] Same phantom-gripper aliasing guard as the replay loops: TidyBot's single
+                    # gripper backs BOTH arm channels (gripper_action_dim [10,10]); the phantom
+                    # (ref-less) arm's +1 (open) written second CLOBBERS the real arm's -1 (closed),
+                    # opening the gripper during phase-2 arm-MP -> the carried can drops from ~1m
+                    # (user-observed). Only write gripper for arms with a real object_ref.
+                    if left_gripper_action is not None and object_ref["arm_left"] is not None:
                         action[env_interface.gripper_action_dim[0]] = left_gripper_action[0]
-                    if right_gripper_action is not None:
+                    if right_gripper_action is not None and object_ref["arm_right"] is not None:
                         action[env_interface.gripper_action_dim[1]] = right_gripper_action[1]
                     
                     mp_actions.append(action)
@@ -1794,7 +1842,8 @@ class WaypointTrajectory(object):
                         left_eef_poses.append((left_replay_waypoints[i].pose[0:3, 3], T.mat2quat(th.tensor(left_replay_waypoints[i].pose[0:3, 0:3]))))
                         action_idx = robot.controller_action_idx["arm_left"]
                         action[action_idx] = replay_action[action_idx]
-                        action[env_interface.gripper_action_dim[0]] = left_replay_waypoints[i].gripper_action[0]
+                        if object_ref["arm_left"] is not None:
+                            action[env_interface.gripper_action_dim[0]] = left_replay_waypoints[i].gripper_action[0]
 
                     # We remove the waypoints that have been replayed for the left arm
                     left_replay_waypoints = left_replay_waypoints[len(mp_actions):]
@@ -1810,7 +1859,8 @@ class WaypointTrajectory(object):
                         right_eef_poses.append((right_replay_waypoints[i].pose[4:7, 3], T.mat2quat(th.tensor(right_replay_waypoints[i].pose[4:7, 0:3]))))
                         action_idx = robot.controller_action_idx["arm_right"]
                         action[action_idx] = replay_action[action_idx]
-                        action[env_interface.gripper_action_dim[1]] = right_replay_waypoints[i].gripper_action[1]
+                        if object_ref["arm_right"] is not None:
+                            action[env_interface.gripper_action_dim[1]] = right_replay_waypoints[i].gripper_action[1]
 
                     right_replay_waypoints = right_replay_waypoints[len(mp_actions):]
 
@@ -1929,6 +1979,13 @@ class WaypointTrajectory(object):
                     right_replay_waypoints.append(last_waypoint)
 
             assert len(left_replay_waypoints) == len(right_replay_waypoints)
+            # [JC] Wire the (previously never-called) grasp-aware replay downsampler:
+            # JC_DS_RATIO=2 halves the replayed steps; asyn mode keeps the grasp/gripper
+            # segment dense enough (internal ratio 2) so close timing is preserved.
+            _jc_ds = int(os.environ.get("JC_DS_RATIO", "1"))
+            if _jc_ds > 1:
+                left_replay_waypoints, right_replay_waypoints = self.downsample_replay_traj(
+                    left_replay_waypoints, right_replay_waypoints, ds_ratio=_jc_ds)
             # print('length of replay actions:', len(left_replay_waypoints))
             print("ARM REPLAY START")
             arm_replay_start_time = time.time()
@@ -1958,10 +2015,26 @@ class WaypointTrajectory(object):
             # converges before advancing (else the arm lags the moving descend target; see the twin
             # loop above). replay_action is computed once per target then held across the repeat.
             num_repeat = int(os.environ.get("MOMAGEN_REPLAY_NUM_REPEAT", "1"))
+            # [JC_REANCHOR] If the ref object moved since phase start (the base drive shoving the
+            # light trash can was measured up to 30cm + tipping), shift the replay targets by the
+            # xy delta so the release aims at where the object IS, not where it was at phase start.
+            # Translation-only; env-gated; no-op below 1cm.
+            _jc_delta = None
+            if os.environ.get("JC_REANCHOR_DROP") == "1" and getattr(self, "_jc_ref_pose_start", None) is not None:
+                try:
+                    _jc_now = np.array(self._jc_ref_obj.get_position_orientation()[0].cpu(), dtype=float)
+                    _d = _jc_now - self._jc_ref_pose_start
+                    if float(np.linalg.norm(_d[:2])) > 0.01:
+                        _jc_delta = np.array([_d[0], _d[1], 0.0])
+                        print(f"JC_REANCHOR ref moved {np.round(_d,3).tolist()} -> shifting replay targets", flush=True)
+                except Exception as _ex:
+                    print("JC_REANCHOR err", _ex, flush=True)
             for left_waypoint, right_waypoint in zip(left_replay_waypoints, right_replay_waypoints):
                 pose = np.zeros((8, 4))
                 pose[:4, :] = left_waypoint.pose[:4, :]
                 pose[4:, :] = right_waypoint.pose[4:, :]
+                if _jc_delta is not None:
+                    pose[0:3, 3] = pose[0:3, 3] + _jc_delta
                 # If one of the arms has no ref object, we set its target pose as the current pose
                 if object_ref["arm_right"] is None:
                     pose[4:, :] = current_right_ee_pose
@@ -1981,6 +2054,32 @@ class WaypointTrajectory(object):
                         replay_action[env_interface.gripper_action_dim[0]] = left_waypoint.gripper_action[0]
                     if object_ref["arm_right"] is not None:
                         replay_action[env_interface.gripper_action_dim[1]] = right_waypoint.gripper_action[1]
+                    # [JC_REPLAY_DEBUG] numeric trace in the REAL execute() loop: replayed eef target vs
+                    # actual eef (tracking error) vs finger-midpoint vs can center, every 25 waypoints and
+                    # exactly at the gripper close edge. Diagnoses whether the replay grasp misses.
+                    if os.environ.get("JC_REPLAY_DEBUG") == "1":
+                        try:
+                            _wi = getattr(self, "_jc_wi", 0); self._jc_wi = _wi + 1
+                            _ga = float(left_waypoint.gripper_action[0])
+                            _prev_ga = getattr(self, "_jc_prev_ga", None); self._jc_prev_ga = _ga
+                            _close_edge = _prev_ga is not None and _ga < 0 <= _prev_ga
+                            if _wi % 25 == 0 or _close_edge:
+                                import numpy as _np
+                                _tgt = _np.array(pose[0:3, 3], float)
+                                _ep, _eq = robot.get_eef_pose("left")
+                                _ep = _np.array(_ep, float)
+                                _can = robot.scene.object_registry("name", "can_of_soda_595")
+                                _cp = _np.array(_can.get_position_orientation()[0], float) if _can is not None else _np.zeros(3)
+                                _lf = _np.array(robot.links["hande_left_finger"].get_position_orientation()[0], float)
+                                _rf = _np.array(robot.links["hande_right_finger"].get_position_orientation()[0], float)
+                                _mid = (_lf + _rf) / 2.0
+                                print("JCDBG wi=%d ga=%+.1f tgt=%s eef=%s trackerr=%.3f can=%s fingmid=%s mid-can=%s%s" % (
+                                    _wi, _ga, _np.round(_tgt, 3).tolist(), _np.round(_ep, 3).tolist(),
+                                    float(_np.linalg.norm(_tgt - _ep)), _np.round(_cp, 3).tolist(),
+                                    _np.round(_mid, 3).tolist(), _np.round(_mid - _cp, 3).tolist(),
+                                    "  <<< CLOSE EDGE" if _close_edge else ""), flush=True)
+                        except Exception as _ex:
+                            print("JCDBG err", _ex, flush=True)
                     state = env.get_state()["states"]
                     temp_start_time = time.time()
                     obs, obs_info = env.get_obs_IL()

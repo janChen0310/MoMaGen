@@ -48,7 +48,7 @@ TASK_NAMES_MOMAGEN_ONLY = ["bringing_water", "picking_up_trash"]
 
 # single-arm TidyBot++ tasks (phantom right arm: real subtasks on arm_left,
 # arm_right object_ref null; source demos named tidybot_<task>.hdf5)
-TIDYBOT_TASK_NAMES = ["pick_cup"]
+TIDYBOT_TASK_NAMES = ["pick_cup", "tidy_table", "picking_up_trash"]
 
 BASE_BASE_CONFIG_PATH = os.path.join(momagen.__path__[0], "./datasets/base_configs")
 BASE_CONFIGS = [
@@ -69,6 +69,8 @@ BASE_CONFIGS = [
     os.path.join(BASE_BASE_CONFIG_PATH, "r1_picking_up_trash.json"),
     # TidyBot++ tasks (keep in the same order as TIDYBOT_TASK_NAMES)
     os.path.join(BASE_BASE_CONFIG_PATH, "tidybot_pick_cup.json"),
+    os.path.join(BASE_BASE_CONFIG_PATH, "tidybot_tidy_table.json"),
+    os.path.join(BASE_BASE_CONFIG_PATH, "tidybot_picking_up_trash.json"),
 ]
 
 def make_generators(base_configs):

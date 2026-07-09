@@ -31,6 +31,12 @@ import logging
 
 # Configure logging and warnings
 th.set_printoptions(precision=3, sci_mode=False, linewidth=1000)
+# [JC] Multi-GPU worker: make torch's DEFAULT cuda device the worker's GPU, so every
+# unqualified "cuda"/.cuda() tensor lands on the same device as OmniGibson physics and the
+# pinned curobo instance (else curobo warmup dies on "found two devices cuda:N and cuda:0").
+if os.environ.get("OMNIGIBSON_GPU_ID") and th.cuda.is_available():
+    th.cuda.set_device(int(os.environ["OMNIGIBSON_GPU_ID"]))
+    print(f"[JC] torch default cuda device set to {os.environ['OMNIGIBSON_GPU_ID']}", flush=True)
 warnings.filterwarnings('ignore', module='trimesh')
 logging.getLogger('trimesh').setLevel(logging.ERROR)
 logging.getLogger('imageio_ffmpeg').setLevel(logging.ERROR)
@@ -519,6 +525,23 @@ def generate_dataset(
 
         print("")
         print("*" * 50)
+        # [JC_DROP_DEBUG] log where the can ended up relative to the trash can, so drop
+        # failures can be classified (off-center miss vs rim bounce vs not-grasped).
+        if os.environ.get("JC_DROP_DEBUG") == "1":
+            try:
+                import numpy as _np
+                _sc = env.env.scene
+                _can = _sc.object_registry("name", "can_of_soda_595")
+                _tr = _sc.object_registry("name", "trash_can_596")
+                if _can is not None and _tr is not None:
+                    _cp = _np.array(_can.get_position_orientation()[0], float)
+                    _tp = _np.array(_tr.get_position_orientation()[0], float)
+                    _dxy = float(_np.linalg.norm((_cp - _tp)[:2]))
+                    print("JCDROP trial=%d success=%s can=%s trash=%s dxy=%.3f dz=%.3f" % (
+                        num_attempts, success, _np.round(_cp, 3).tolist(), _np.round(_tp, 3).tolist(),
+                        _dxy, float(_cp[2] - _tp[2])), flush=True)
+            except Exception as _ex:
+                print("JCDROP err", _ex, flush=True)
         print("trial {} success: {}".format(num_attempts, success))
         print("have {} successes out of {} trials so far".format(num_success, num_attempts))
         print("have {} failures out of {} trials so far".format(num_failures, num_attempts))

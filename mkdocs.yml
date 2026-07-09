@@ -33,6 +33,8 @@ nav:
   - Tutorials:
       - Generating Data: tutorials/generating-data.md
       - Custom Tasks: tutorials/custom-tasks.md
+      - Custom Embodiments: tutorials/custom-embodiments.md
+      - TidyBot Task Pipelines: tutorials/tidybot-task-pipelines.md
 
 markdown_extensions:
   - pymdownx.highlight:

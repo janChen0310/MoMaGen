@@ -998,6 +998,27 @@ TASK_CONFIGS = {
         },
     ),
 
+    "tidybot_tidy_table": TaskConfig(
+        name="tidybot_tidy_table",
+        tracked_objects={
+            # teacup_601 is grasped by its HANDLE (the Hand-E's ~50mm opening can't wrap the
+            # bowl). drop_in_sink_awvzkn_0 is the place target. Both poses must be in datagen_info.
+            "teacup_601": "teacup_601",
+            "drop_in_sink_awvzkn_0": "drop_in_sink_awvzkn_0",
+        },
+    ),
+
+    "tidybot_picking_up_trash": TaskConfig(
+        name="tidybot_picking_up_trash",
+        tracked_objects={
+            # datagen_picking_up_trash sampled in house_single_floor (kitchen countertop -> floor
+            # trash can). can_of_soda_595 = grasped item (object_ref for phase 1, attached_obj for
+            # phase 2); trash_can_596 = drop target (object_ref for phase 2). Both poses in datagen_info.
+            "can_of_soda_595": "can_of_soda_595",
+            "trash_can_596": "trash_can_596",
+        },
+    ),
+
     # ------------------------------------------------------------------------------------------------
     # Add new task configs here
     # Note 1: tracked_objects is a dictionary with the same key and value. Furthermore, the tracked_object is the
@@ -1067,6 +1088,14 @@ class MG_R1PickingUpTrash(OmniGibsonInterfaceBimanual):
 class MG_TidyBotPickCup(OmniGibsonInterfaceTidyBot):
     def __init__(self, env):
         super().__init__(env, TASK_CONFIGS["tidybot_pick_cup"])
+
+class MG_TidyBotTidyTable(OmniGibsonInterfaceTidyBot):
+    def __init__(self, env):
+        super().__init__(env, TASK_CONFIGS["tidybot_tidy_table"])
+
+class MG_TidyBotPickingUpTrash(OmniGibsonInterfaceTidyBot):
+    def __init__(self, env):
+        super().__init__(env, TASK_CONFIGS["tidybot_picking_up_trash"])
 
 
 
