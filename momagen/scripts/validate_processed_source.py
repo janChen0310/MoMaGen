@@ -7,7 +7,7 @@ See that module's docstring for why this check exists.
 import argparse
 import sys
 
-from momagen.utils.source_demo_validation import validate_processed_source, sync_advisories
+from momagen.utils.source_demo_validation import _open_or_error, _scan_problems, _scan_advisories
 
 
 def main():
@@ -21,14 +21,22 @@ def main():
     if args.expect_versions:
         expected = dict(kv.split("=", 1) for kv in args.expect_versions.split(","))
 
-    problems = validate_processed_source(args.path, expected)
+    # Open once and reuse the handle for both the fatal scan and the advisory scan
+    # (validate_processed_source/sync_advisories each open independently, which is
+    # fine for library callers but wasteful here since the CLI needs both).
+    f, problems = _open_or_error(args.path)
+    if f is not None:
+        with f:
+            problems = _scan_problems(f, expected)
+            if not problems:
+                for advisory in _scan_advisories(f):
+                    print("advisory:", advisory)
+
     if problems:
         print("INVALID — do not sync:")
         for p in problems:
             print("  -", p)
         sys.exit(1)
-    for advisory in sync_advisories(args.path):
-        print("advisory:", advisory)
     print("VALID — safe to sync:", args.path)
 
 
