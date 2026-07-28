@@ -97,18 +97,124 @@ def test_missing_interface_attrs_rejected(tmp_path):
     assert any("env_interface_name" in x for x in validate_processed_source(str(p)))
 
 
+# The complete pin for the fixture (and for the real shipped demo): every component
+# the file declares must be named, otherwise the unnamed ones go unchecked.
+FULL_PIN = {"omnigibson": "3.7.1", "bddl": "3.7.0", "behavior-1k-assets": "3.7.2rc1"}
+
+
 def test_version_mismatch_rejected(tmp_path):
     # A 3.9.0-authored file fed to the 3.7.1 server is the silent-corruption case.
     p = tmp_path / "ver.hdf5"
     _make_demo(p, og_version="3.9.0")
-    problems = validate_processed_source(str(p), expected_versions={"omnigibson": "3.7.1"})
+    problems = validate_processed_source(str(p), expected_versions=FULL_PIN)
     assert any("3.9.0" in x for x in problems)
 
 
 def test_matching_version_accepted(tmp_path):
     p = tmp_path / "vok.hdf5"
     _make_demo(p, og_version="3.7.1")
-    assert validate_processed_source(str(p), expected_versions={"omnigibson": "3.7.1"}) == []
+    assert validate_processed_source(str(p), expected_versions=FULL_PIN) == []
+
+
+def test_partial_version_pin_is_rejected(tmp_path):
+    # THE silent-corruption path this module exists to close: pinning only the
+    # components the caller happened to name lets every OTHER declared component
+    # (here behavior-1k-assets, which decides asset hashes and therefore grasp
+    # geometry) drift unchecked. OmniGibson 3.7.1 downgrades an asset-hash
+    # mismatch to a warning, so an unchecked component fails SILENTLY.
+    p = tmp_path / "partial.hdf5"
+    _make_demo(p, og_version="3.7.1")
+    problems = validate_processed_source(str(p), expected_versions={"omnigibson": "3.7.1"})
+    assert problems, "an incomplete --expect-versions must never report VALID"
+    joined = " ".join(problems)
+    assert "behavior-1k-assets" in joined and "bddl" in joined
+    # The operator must be able to read the full pin straight out of the message.
+    assert "3.7.2rc1" in joined and "3.7.0" in joined
+
+
+def test_partial_pin_reports_unchecked_even_when_named_ones_drift(tmp_path):
+    # Both failures must be reported together, not one masking the other.
+    p = tmp_path / "partial2.hdf5"
+    _make_demo(p, og_version="3.9.0")
+    problems = validate_processed_source(str(p), expected_versions={"omnigibson": "3.7.1"})
+    joined = " ".join(problems)
+    assert "3.9.0" in joined and "behavior-1k-assets" in joined
+
+
+def test_zero_length_demo_rejected(tmp_path):
+    # A truncated prepare_src_dataset.py run leaves action (0, 11), eef_pose (0, 8, 4),
+    # ... — every shape and length check agrees, so it used to validate clean. A
+    # zero-step demo is not syncable.
+    p = tmp_path / "zero.hdf5"
+    _make_demo(p, T=0)
+    problems = validate_processed_source(str(p))
+    assert problems, "a zero-step demo must not validate clean"
+    assert any("zero" in x.lower() or "0 step" in x.lower() for x in problems)
+
+
+def test_empty_mask_use_rejected(tmp_path):
+    # file_utils.py:57 builds demo_keys from mask/use; an empty one silently
+    # generates over zero demos.
+    p = tmp_path / "emptymask.hdf5"
+    _make_demo(p)
+    with h5py.File(p, "a") as f:
+        del f["mask/use"]
+        f["mask"].create_dataset("use", data=np.zeros((0,), dtype="S16"))
+    assert any("mask/use" in x for x in validate_processed_source(str(p)))
+
+
+def test_mask_use_naming_absent_demo_rejected(tmp_path):
+    # mask/use naming demo_7 when only demo_0 exists raises KeyError on the SERVER,
+    # after the sync — exactly the failure this validator must catch locally.
+    p = tmp_path / "danglingmask.hdf5"
+    _make_demo(p)
+    with h5py.File(p, "a") as f:
+        del f["mask/use"]
+        f["mask"].create_dataset("use", data=np.array([b"demo_0", b"demo_7"]))
+    problems = validate_processed_source(str(p))
+    assert any("demo_7" in x for x in problems)
+
+
+def test_object_poses_as_dataset_returns_problem_not_traceback(tmp_path):
+    # object_poses must be a Group of per-object datasets. Stored as a Dataset it
+    # used to raise TypeError ("Only 1D arrays allowed for fancy indexing") — this
+    # module promises to return problems, never to raise.
+    p = tmp_path / "opdataset.hdf5"
+    _make_demo(p)
+    with h5py.File(p, "a") as f:
+        del f["data/demo_0/datagen_info/object_poses"]
+        f["data/demo_0/datagen_info"].create_dataset(
+            "object_poses", data=np.zeros((10, 4, 4), dtype=np.float32))
+    problems = validate_processed_source(str(p))
+    assert any("object_poses" in x for x in problems)
+
+
+@pytest.mark.parametrize("group_path", [
+    "data/demo_0/datagen_info/eef_pose",
+    "data/demo_0/datagen_info/gripper_action",
+])
+def test_group_where_dataset_expected_returns_problem_not_traceback(tmp_path, group_path):
+    # Same contract as object_poses above: wrong-kind nodes must be reported, not
+    # raised. `.shape` on an h5py.Group is an AttributeError.
+    p = tmp_path / "wrongkind.hdf5"
+    _make_demo(p)
+    with h5py.File(p, "a") as f:
+        del f[group_path]
+        f.create_group(group_path)
+    name = group_path.rsplit("/", 1)[1]
+    assert any(name in x for x in validate_processed_source(str(p)))
+
+
+def test_state_size_only_advisory_does_not_claim_zero_mb(tmp_path):
+    # With only state_size present the byte count is unknown; printing "~0.0 MB"
+    # tells the operator there is nothing to strip, which is the opposite of true.
+    p = tmp_path / "sizeonly.hdf5"
+    _make_demo(p)
+    with h5py.File(p, "a") as f:
+        f["data/demo_0"].create_dataset("state_size", data=np.array([1270]))
+    advisories = sync_advisories(str(p))
+    assert advisories and "state_size" in advisories[0]
+    assert "0.0 MB" not in advisories[0]
 
 
 def test_unreadable_versions_fail_closed(tmp_path):
@@ -123,17 +229,25 @@ def test_unreadable_versions_fail_closed(tmp_path):
 
 def test_real_shipped_demo_versions_are_readable():
     # Guards against the fixture drifting from the real on-disk schema, which is what
-    # masked the original dead-code version check.
+    # masked the original dead-code version check. The path must be derived from
+    # __file__, not cwd — a relative path makes this drift guard silently skip
+    # whenever pytest is invoked from anywhere but the repo root.
     import os
 
     from momagen.utils.source_demo_validation import read_versions
 
-    real = "momagen/datasets/processed_source_demos/tidybot_picking_up_trash.hdf5"
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    real = os.path.join(
+        repo_root, "momagen", "datasets", "processed_source_demos",
+        "tidybot_picking_up_trash.hdf5")
     if not os.path.exists(real):
         pytest.skip("shipped demo not present")
     with h5py.File(real, "r") as f:
         versions = read_versions(f["data"].attrs)
     assert versions is not None and versions.get("omnigibson") == "3.7.1"
+    # The fixture's FULL_PIN must stay in step with what the real file declares,
+    # otherwise the partial-pin guard above is testing a shape that does not exist.
+    assert versions == FULL_PIN
 
 
 def test_gripper_action_width_rejected(tmp_path):
@@ -172,12 +286,40 @@ def test_cli_exit_codes_and_expect_versions(tmp_path):
                         capture_output=True, text=True, cwd=repo_root, env=env)
     assert ok.returncode == 0 and "VALID" in ok.stdout
 
+    full = ",".join(f"{k}={v}" for k, v in FULL_PIN.items())
     match = subprocess.run(
-        [sys.executable, script, str(p), "--expect-versions", "omnigibson=3.7.1"],
+        [sys.executable, script, str(p), "--expect-versions", full],
         capture_output=True, text=True, cwd=repo_root, env=env)
     assert match.returncode == 0 and "VALID" in match.stdout
 
     mismatch = subprocess.run(
-        [sys.executable, script, str(p), "--expect-versions", "omnigibson=3.9.0"],
+        [sys.executable, script, str(p), "--expect-versions",
+         full.replace("omnigibson=3.7.1", "omnigibson=3.9.0")],
         capture_output=True, text=True, cwd=repo_root, env=env)
     assert mismatch.returncode == 1 and "INVALID" in mismatch.stdout
+
+    # An incomplete pin — the exact invocation the old help string suggested —
+    # must exit 1, not 0.
+    partial = subprocess.run(
+        [sys.executable, script, str(p), "--expect-versions", "omnigibson=3.7.1"],
+        capture_output=True, text=True, cwd=repo_root, env=env)
+    assert partial.returncode == 1 and "INVALID" in partial.stdout
+
+
+def test_cli_help_example_is_a_complete_pin(tmp_path):
+    # The help string is the invocation operators copy. If it demonstrates an
+    # incomplete pin it teaches the very mistake this validator now rejects, so
+    # the example itself must validate the shipped file's full component set.
+    import os
+    import subprocess
+    import sys
+
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    script = os.path.join(repo_root, "momagen", "scripts", "validate_processed_source.py")
+    env = dict(os.environ, PYTHONPATH=repo_root)
+
+    helptext = subprocess.run([sys.executable, script, "--help"],
+                              capture_output=True, text=True, cwd=repo_root, env=env)
+    assert helptext.returncode == 0
+    for component in FULL_PIN:
+        assert component in helptext.stdout, f"help example omits '{component}'"

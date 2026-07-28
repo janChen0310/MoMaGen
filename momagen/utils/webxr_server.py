@@ -10,17 +10,21 @@ graph, so it must import cleanly with no ROS installed.
 Messages received from the phone are pushed onto a `collections.deque` for a
 simulator loop to drain, exactly like the `key_queue` the keyboard-teleop path
 already drains today.
+
+Lifecycle is explicit: `WebServer(...)` builds the app, the handlers and the queue
+without touching the network, and `start()` / `stop()` bind and release the port.
+Constructing must stay side-effect free — it is the only reason the socket handlers
+can be exercised by tests (and by a caller doing a dry run) with nothing listening.
 """
 import logging
 import os
 import socket
 import threading
-import time
 from collections import deque
-from urllib.request import Request, urlopen
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
+from werkzeug.serving import make_server
 
 GREEN = "\x1b[32m"
 RED = "\x1b[31m"
@@ -40,6 +44,8 @@ _ASSETS_DIR = os.path.join(
 # oldest stale message rather than grow memory without bound.
 _DEFAULT_QUEUE_MAXLEN = 100
 
+_DEFAULT_PORT = 5000
+
 
 class WebServer:
     """Flask + Socket.IO server that serves the phone webapp and queues its messages.
@@ -49,42 +55,52 @@ class WebServer:
     is drained today for the keyboard-teleop fallback. If no `queue` is supplied, a
     bounded one (`maxlen=_DEFAULT_QUEUE_MAXLEN`) is created automatically; pass one
     explicitly to choose a different bound (or, deliberately, an unbounded deque).
+
+    Usage::
+
+        server = WebServer(queue)
+        server.start()          # binds `port`, serves in a daemon thread
+        ...                     # sim loop drains `server.queue`
+        server.stop()           # releases the port
+
+    `port=0` asks the OS for an ephemeral port; `start()` writes the real one back
+    to `self.port`.
     """
 
     def __init__(self, queue: deque = None, record_enabled: bool = False,
-                 assets_dir: str = _ASSETS_DIR):
+                 assets_dir: str = _ASSETS_DIR, host: str = "0.0.0.0",
+                 port: int = _DEFAULT_PORT):
         self.app = Flask(
             __name__,
             template_folder=assets_dir,
             static_folder=assets_dir,
             static_url_path="/static",
         )
-        # Use threading async mode with Werkzeug dev server; requires simple-websocket
-        # installed for WS.
+        # Use threading async mode with the Werkzeug server; requires simple-websocket
+        # installed for WS. init_app wraps app.wsgi_app in the Socket.IO middleware, so
+        # serving `self.app` through werkzeug serves the socket transport too.
         self.socketio = SocketIO(self.app, async_mode="threading", cors_allowed_origins="*")
         self.queue = queue if queue is not None else deque(maxlen=_DEFAULT_QUEUE_MAXLEN)
         self.address = None
-        self.port = 5000
+        self.host = host
+        self.port = port
         self.server_thread = None
         self.record_enabled = record_enabled
+        self._server = None
 
         @self.app.route("/")
         def index():
             return render_template("index.html", record_enabled=self.record_enabled)
 
-        @self.app.route("/__shutdown__")
-        def shutdown():
-            func = request.environ.get("werkzeug.server.shutdown")
-            if func is None:
-                return "Server shutdown not available", 500
-            func()
-            return "OK", 200
-
         @self.socketio.on("message")
         def handle_message(data):
             # Send the timestamp back for RTT calculation (expected RTT on 5 GHz Wi-Fi
             # is 7 ms) -- this is how the operator confirms the link is healthy.
-            emit("echo", data["timestamp"])
+            # `.get` rather than `data["timestamp"]`: a message without one is not a
+            # reason to raise out of the handler and drop the pose it carries.
+            timestamp = data.get("timestamp") if isinstance(data, dict) else None
+            if timestamp is not None:
+                emit("echo", timestamp)
 
             # Push data onto the deque for the sim loop to drain.
             self.queue.append(data)
@@ -102,22 +118,14 @@ class WebServer:
 
         # Reduce verbose Flask log output
         logging.getLogger("werkzeug").setLevel(logging.WARNING)
-        self.run()
-        # Start the Flask server in a separate thread
-        self.server_thread = threading.Thread(
-            target=lambda: self.socketio.run(
-                self.app,
-                host="0.0.0.0",
-                port=self.port,
-                allow_unsafe_werkzeug=True,
-                use_reloader=False,
-            ),
-            daemon=True,
-        )
-        self.server_thread.start()
 
-    def run(self):
-        # Get IP address
+    def _discover_address(self):
+        """Best-effort LAN IP, so the printed URL is one the phone can actually reach."""
+        # Only guess when bound to a wildcard; an explicit host IS the answer, and
+        # printing the LAN IP for a 127.0.0.1-bound server would be a lie.
+        if self.host not in ("0.0.0.0", "::", ""):
+            self.address = self.host
+            return self.address
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(0)
         try:
@@ -127,16 +135,42 @@ class WebServer:
             self.address = "127.0.0.1"
         finally:
             s.close()
-        print(f"Starting server at {self.address}:{self.port}")
+        return self.address
+
+    def start(self):
+        """Bind the port and serve in a daemon thread. Returns self.
+
+        `make_server` is used instead of `socketio.run()` specifically so that the
+        underlying server OBJECT is retained: it is the only handle on Werkzeug 3.x
+        that can actually stop the server. The `request.environ["werkzeug.server.
+        shutdown"]` hook the previous `/__shutdown__` route relied on was REMOVED in
+        Werkzeug 2.1, so that route returned 500 forever and `stop()` was a no-op.
+        """
+        if self._server is not None:
+            raise RuntimeError("WebServer.start() called on an already-started server")
+        # threaded=True mirrors what socketio.run()/run_simple do in threading async
+        # mode; each websocket occupies a connection for its lifetime, so a
+        # single-threaded server would serve exactly one phone and then wedge.
+        self._server = make_server(self.host, self.port, self.app, threaded=True)
+        # Records the real port when self.port was 0 (ephemeral).
+        self.port = self._server.port
+        self.server_thread = threading.Thread(
+            target=self._server.serve_forever, daemon=True, name="webxr-server")
+        self.server_thread.start()
+        self._discover_address()
+        print(f"Serving WebXR teleop client at "
+              f"{BOLD}{GREEN}http://{self.address}:{self.port}{RESET}")
+        return self
 
     def stop(self):
-        # Request Werkzeug shutdown endpoint
-        try:
-            urlopen(Request(f"http://127.0.0.1:{self.port}/__shutdown__"), timeout=1)
-        except Exception:
-            pass
-        # Give the server a moment to stop
-        time.sleep(0.2)
-        # Join thread briefly; it's daemon so process can exit regardless
-        if self.server_thread and self.server_thread.is_alive():
-            self.server_thread.join(timeout=1.0)
+        """Stop serving and release the port. Safe before start() and safe twice."""
+        server, self._server = self._server, None
+        if server is not None:
+            # shutdown() ends serve_forever; server_close() closes the LISTENING
+            # socket. Without the second call the port stays claimed and the next
+            # WebServer on it dies with "Address already in use".
+            server.shutdown()
+            server.server_close()
+        thread, self.server_thread = self.server_thread, None
+        if thread is not None and thread.is_alive():
+            thread.join(timeout=5.0)

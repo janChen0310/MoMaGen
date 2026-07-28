@@ -71,6 +71,20 @@ class WebXRDeltaTracker:
         return dpos, drot
 
 
+def _finite_pose(pos, quat):
+    """Return (pos, quat) only if every component is finite, else None.
+
+    A missing key raises KeyError, but a JSON `null` does NOT — `np.array([None, 0.0],
+    dtype=float)` yields NaN silently. That NaN flows into `nudge(dpos=[nan, ...])`,
+    which NaNs the teleop target PERMANENTLY: every later delta is added to NaN, so
+    the arm is dead for the rest of the episode with no exception and nothing in the
+    logs. Rejecting the message instead costs one dropped frame at 30 Hz.
+    """
+    if not (np.isfinite(pos).all() and np.isfinite(quat).all()):
+        return None
+    return pos, quat
+
+
 def _xr_pose_from_msg(msg):
     """Read the WebXR client's wire format.
 
@@ -78,7 +92,8 @@ def _xr_pose_from_msg(msg):
     `data.orientation = {x, y, z, w}` (index.html:247-257). The flat pos_x/or_x form
     existed only inside tidybot_ros's deleted rclpy publisher, which flattened these
     into a ROS TeleopMsg. Both spellings are accepted so either producer works.
-    Returns (pos, quat) or None when the message carries no pose.
+    Returns (pos, quat) or None when the message carries no USABLE pose — missing,
+    non-numeric, or non-finite all collapse to None so the robot simply does not move.
     """
     position, orientation = msg.get("position"), msg.get("orientation")
     if isinstance(position, dict) and isinstance(orientation, dict):
@@ -88,16 +103,16 @@ def _xr_pose_from_msg(msg):
                 [orientation["x"], orientation["y"], orientation["z"], orientation["w"]],
                 dtype=float,
             )
-        except KeyError:
+        except (KeyError, TypeError, ValueError):
             return None
-        return pos, quat
+        return _finite_pose(pos, quat)
     if "pos_x" in msg and "or_w" in msg:
         try:
             pos = np.array([msg["pos_x"], msg["pos_y"], msg["pos_z"]], dtype=float)
             quat = np.array([msg["or_x"], msg["or_y"], msg["or_z"], msg["or_w"]], dtype=float)
-        except KeyError:
+        except (KeyError, TypeError, ValueError):
             return None
-        return pos, quat
+        return _finite_pose(pos, quat)
     return None
 
 
@@ -124,8 +139,26 @@ def apply_webxr(msg, teleop, tracker):
         if pose is not None:
             delta = tracker.update(pose[0], pose[1])
             if delta is not None:
+                # delta[1] (drot) is computed and correct (see the tracker) but not
+                # applied yet: CartesianTeleop's orientation channel is not wired for
+                # the collector in this branch. Kept, not deleted, because orientation
+                # control is wanted next; its composition order is pinned by
+                # test_drot_is_the_world_order_composition.
                 teleop.nudge(dpos=delta[0])
 
+    # DELIBERATE DEVIATION from phone_policy.py (like the state_update release above),
+    # in two parts:
+    #   1. Latching, not incremental. The original publishes a continuous position,
+    #      `clip(gripper_ref + gripper_delta, 0, 1)`. The collector's CartesianTeleop
+    #      exposes a BOOLEAN `gripper_closed`, so there is no continuum to accumulate
+    #      into — the command is latched at 0.5 instead.
+    #   2. Applied outside the debounce/anchor gate. The original only reaches its
+    #      gripper publish after `enable_counts > 2` inside `case "arm"`. Here the
+    #      latch follows the phone's button state on every message. That is safe
+    #      precisely BECAUSE it latches: there is no reference pose to be captured at
+    #      the wrong moment and no accumulated drift, so an early message just sets
+    #      the boolean the operator is already holding. A missing `gripper_delta`
+    #      leaves the latch untouched rather than releasing the grasp.
     gripper_delta = msg.get("gripper_delta")
     if gripper_delta is not None:
         teleop.gripper_closed = gripper_delta > 0.5
