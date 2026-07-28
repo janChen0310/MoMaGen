@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 import pytest
 
-from momagen.utils.source_demo_validation import validate_processed_source
+from momagen.utils.source_demo_validation import validate_processed_source, sync_advisories
 
 
 def _make_demo(path, T=10, with_state=False, eef_shape=(8, 4), objects=("can_of_soda_595",)):
@@ -30,11 +30,30 @@ def test_valid_file_has_no_problems(tmp_path):
     assert validate_processed_source(str(p)) == []
 
 
-def test_raw_state_is_rejected(tmp_path):
+def test_raw_demo_missing_datagen_info_is_rejected(tmp_path):
+    # A RAW demo is one with no datagen_info group — that, not the presence of
+    # `state`, is what makes a file unsafe to sync (verified against the real files).
     p = tmp_path / "raw.hdf5"
     _make_demo(p, with_state=True)
+    with h5py.File(p, "a") as f:
+        del f["data/demo_0/datagen_info"]
     problems = validate_processed_source(str(p))
-    assert any("state" in x for x in problems)
+    assert any("datagen_info" in x for x in problems)
+
+
+def test_leftover_state_is_advisory_not_fatal(tmp_path):
+    # Processed demos legitimately keep state/state_size (~4.94MB of 5.8MB); generation
+    # never reads it. It should be advised away, not rejected.
+    p = tmp_path / "withstate.hdf5"
+    _make_demo(p, with_state=True)
+    assert validate_processed_source(str(p)) == []
+    assert any("state" in a for a in sync_advisories(str(p)))
+
+
+def test_no_advisory_for_stripped_file(tmp_path):
+    p = tmp_path / "stripped.hdf5"
+    _make_demo(p, with_state=False)
+    assert sync_advisories(str(p)) == []
 
 
 def test_wrong_eef_shape_is_rejected(tmp_path):

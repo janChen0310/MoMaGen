@@ -7,7 +7,7 @@ See that module's docstring for why this check exists.
 import argparse
 import sys
 
-from momagen.utils.source_demo_validation import validate_processed_source
+from momagen.utils.source_demo_validation import validate_processed_source, sync_advisories
 
 
 def main():
@@ -27,6 +27,8 @@ def main():
         for p in problems:
             print("  -", p)
         sys.exit(1)
+    for advisory in sync_advisories(args.path):
+        print("advisory:", advisory)
     print("VALID — safe to sync:", args.path)
 
 

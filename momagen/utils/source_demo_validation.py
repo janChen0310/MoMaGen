@@ -1,9 +1,13 @@
 """Validate a PROCESSED source demo before syncing it to the generation server.
 
-Generation reads only world-frame SE(3) geometry, so a processed demo is portable
-across OmniGibson versions. A RAW demo is not: its `state` blobs are version-specific
-and OmniGibson 3.7.1 has no version gate, so a newer file fails SILENTLY. This module
-is that missing gate.
+Generation reads only world-frame SE(3) geometry (`datagen_info`), so a processed
+demo is portable across OmniGibson versions once that group exists. A RAW demo is
+one with no `datagen_info` at all — its only content is the version-specific `state`
+blob, and OmniGibson 3.7.1 has no version gate, so a newer file fails SILENTLY if
+someone tries to replay that state on the server. This module is that missing gate.
+
+Leftover `state`/`state_size` alongside a complete `datagen_info` is legal (generation
+never reads it) but bulky — `sync_advisories` flags that as non-fatal hygiene advice.
 """
 import json
 
@@ -43,10 +47,6 @@ def validate_processed_source(path, expected_versions=None):
 
         for demo in demos:
             g = data[demo]
-            if "state" in g or "state_size" in g:
-                problems.append(
-                    f"{demo}: contains raw 'state'/'state_size' — this is a RAW demo. "
-                    "Run prepare_src_dataset.py locally and sync the processed file instead.")
             if "action" not in g:
                 problems.append(f"{demo}: missing 'action' (its length defines the trajectory)")
                 continue
@@ -94,3 +94,18 @@ def validate_processed_source(path, expected_versions=None):
                         problems.append(
                             f"{demo}: object_poses/{obj} length {shape[0]} != action length {T}")
     return problems
+
+
+def sync_advisories(path):
+    """Non-fatal hygiene advice. Leftover `state` is legal in a processed demo (generation
+    never reads it) but it is ~95% of the file size, so advise stripping before syncing."""
+    advisories = []
+    with h5py.File(path, "r") as f:
+        for demo in [k for k in f.get("data", {}) if k.startswith("demo")]:
+            g = f["data"][demo]
+            if "state" in g or "state_size" in g:
+                nbytes = g["state"].size * g["state"].dtype.itemsize if "state" in g else 0
+                advisories.append(
+                    f"{demo}: carries leftover 'state' (~{nbytes / 1e6:.1f} MB) that generation "
+                    "never reads — strip it with make_minimal_source.py before syncing")
+    return advisories
