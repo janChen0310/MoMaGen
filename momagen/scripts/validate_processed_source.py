@@ -17,13 +17,17 @@ def main():
     ap = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("path")
     ap.add_argument("--expect-versions", default=None,
-                    help="comma list pinning EVERY component the file declares, e.g.\n"
+                    help="comma list pinning EVERY component the file declares a\n"
+                         "version for, e.g.\n"
                          "  omnigibson=3.7.1,bddl=3.7.0,behavior-1k-assets=3.7.2rc1\n"
-                         "A partial pin is REJECTED: any declared component left\n"
-                         "unpinned would drift silently on the server (an asset-hash\n"
-                         "mismatch is only a warning there). The rejection message\n"
-                         "for an incomplete pin lists the file's full declared set,\n"
-                         "so it can be copied straight back into this flag.")
+                         "A partial pin is REJECTED: any such component left unpinned\n"
+                         "would drift silently on the server (an asset-hash mismatch\n"
+                         "is only a warning there). The rejection message for an\n"
+                         "incomplete pin lists the file's full declared set, so it can\n"
+                         "be copied straight back into this flag.\n"
+                         "A component the file declares but cannot identify at all\n"
+                         "(version and git_hash both null) takes no pin — there is\n"
+                         "nothing to pin it to — and is reported as an advisory.")
     args = ap.parse_args()
 
     expected = None

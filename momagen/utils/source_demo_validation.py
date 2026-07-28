@@ -8,18 +8,37 @@ someone tries to replay that state on the server. This module is that missing ga
 
 Leftover `state`/`state_size` alongside a complete `datagen_info` is legal (generation
 never reads it) but bulky — `sync_advisories` flags that as non-fatal hygiene advice.
+
+Version gating, in one place, because a false PASS here is the worst defect this
+module can have and every rule below exists to prevent one:
+
+* Without `--expect-versions` there is no version gate at all — just schema checks.
+* With it, EVERY component the file declares must be accounted for. Comparing only
+  the names the caller passed lets the rest drift unchecked.
+* A component declared with no readable `version` but with some other identity (a
+  `git_hash`) is FATAL: it names a concrete build that can differ from the server's
+  and nothing can compare it.
+* A component declared with no identity at all (`{"version": null, "git_hash": null}`,
+  which is how OmniGibson marks a component it cannot identify, and which the shipped
+  demo carries for `omnigibson-robot-assets`) is an ADVISORY, not fatal. There is no
+  fact to compare and no pin string that could ever satisfy it, so failing on it would
+  make `--expect-versions` unsatisfiable on every file OmniGibson writes — and an
+  unsatisfiable guardrail gets switched off, which is how the hole reopens. It is
+  reported on every run instead, so it is never silent.
 """
 import json
 
 import h5py
 
 
-def read_versions(data_attrs):
-    """Extract {component: version} from a demo's attrs.
+def read_declared_components(data_attrs):
+    """Every component the file's `scene_file` declares, mapped to its raw entry.
 
-    Versions are NOT a flat `data.attrs["versions"]` key (verified against the real
-    files). They live nested inside the `scene_file` JSON blob that OmniGibson writes:
-    scene_file["versions"]["omnigibson"]["version"]. Returns None when unreadable.
+    Unlike `read_versions` this drops NOTHING. That matters because a component the
+    reader silently omits is a component the version gate can neither compare nor
+    report as unpinned — it becomes invisible, which is the same silent-PASS class
+    the gate exists to close. Scalar entries are normalised to {"version": value}.
+    Returns None when the scene_file/versions blob is unreadable at all.
     """
     raw = data_attrs.get("scene_file")
     if raw is None:
@@ -31,12 +50,61 @@ def read_versions(data_attrs):
     versions = scene_file.get("versions")
     if not isinstance(versions, dict):
         return None
-    out = {}
-    for key, val in versions.items():
-        version = val.get("version") if isinstance(val, dict) else val
-        if version is not None:
-            out[key] = str(version)
-    return out
+    return {key: (val if isinstance(val, dict) else {"version": val})
+            for key, val in versions.items()}
+
+
+def _usable_version(entry):
+    """The comparable version string in a declared entry, or None if there is none."""
+    version = entry.get("version")
+    return None if version is None else str(version)
+
+
+def _component_identity(entry):
+    """Any field that ties this declared component to a CONCRETE build, or None.
+
+    This is the distinction the version gate turns on, and the two shapes are not
+    equivalent:
+
+    * An entry with a version, or with a git_hash but no version, names a specific
+      build. It CAN differ between the file and the server, so leaving it unchecked
+      is a real silent-drift path and must be fatal under --expect-versions.
+    * An entry with neither ({"version": null, "git_hash": null}) carries no fact to
+      compare and no string that could ever satisfy a pin. OmniGibson writes exactly
+      this for components it cannot identify, and the shipped demo declares
+      `omnigibson-robot-assets` that way, so treating it as fatal would make
+      --expect-versions permanently unsatisfiable on every file OmniGibson produces.
+      An unsatisfiable guardrail gets switched off, which would restore the very hole
+      the completeness check closes — so it is surfaced as an advisory instead, never
+      dropped in silence.
+
+    Only "version" and "git_hash" are consulted: those are the fields OmniGibson
+    actually writes, and inventing others would guess at a format we have not seen.
+    """
+    for key in ("version", "git_hash"):
+        value = entry.get(key)
+        if value is not None and str(value) != "":
+            return f"{key}={value}"
+    return None
+
+
+def read_versions(data_attrs):
+    """Extract {component: version} from a demo's attrs — the COMPARABLE view.
+
+    Versions are NOT a flat `data.attrs["versions"]` key (verified against the real
+    files). They live nested inside the `scene_file` JSON blob that OmniGibson writes:
+    scene_file["versions"]["omnigibson"]["version"]. Returns None when unreadable.
+
+    Components declared without a usable version are omitted, deliberately: this is
+    the "what can I compare?" view. Use `read_declared_components` for the "what does
+    the file declare?" view — the gate needs both, and conflating them is what let a
+    hash-only component slip through unchecked.
+    """
+    declared = read_declared_components(data_attrs)
+    if declared is None:
+        return None
+    return {key: _usable_version(entry) for key, entry in declared.items()
+            if _usable_version(entry) is not None}
 
 
 def open_or_error(path):
@@ -70,15 +138,24 @@ def _scan_versions(data_attrs, expected_versions):
     — so an unchecked behavior-1k-assets drift displaces grasps with no exception
     anywhere. A false PASS is the worst defect this module can have, so anything
     the file declares must be explicitly pinned before the file is certified.
+
+    "Anything the file declares" means the DECLARED set, not the comparable set: a
+    component whose version is unreadable used to be dropped by read_versions and so
+    escaped both the comparison and the completeness check. See `_component_identity`
+    for why an unreadable-but-identified component is fatal while a wholly
+    unidentified one is only advised.
     """
     problems = []
-    got = read_versions(data_attrs)
-    if got is None:
+    declared = read_declared_components(data_attrs)
+    if declared is None:
         # Fail CLOSED: a guardrail that cannot read the versions must not
         # report VALID, because a false PASS is the failure mode that silently
         # corrupts generation.
         return ["cannot determine file versions (no readable scene_file/versions) — "
                 "refusing to certify against --expect-versions"]
+
+    got = {k: _usable_version(e) for k, e in declared.items()
+           if _usable_version(e) is not None}
 
     for key, want in expected_versions.items():
         have = got.get(key)
@@ -87,16 +164,31 @@ def _scan_versions(data_attrs, expected_versions):
         elif str(have) != str(want):
             problems.append(f"version mismatch {key}: file has {have}, server expects {want}")
 
+    # Declared, not comparable, but still tied to a concrete build (e.g. a git_hash
+    # with no "version" key). Nothing can verify it and the operator has no way to
+    # pin it, so refuse rather than certify around it. Names the caller already
+    # passed are skipped: the loop above reported those with a better message.
+    opaque = sorted(k for k, e in declared.items()
+                    if k not in got and k not in expected_versions
+                    and _component_identity(e) is not None)
+    if opaque:
+        problems.append(
+            "unverifiable component: the file declares "
+            + ", ".join(f"'{k}' ({_component_identity(declared[k])})" for k in opaque)
+            + " with no readable 'version', so --expect-versions cannot check "
+            + ("it" if len(opaque) == 1 else "them")
+            + " — refusing to certify a file whose declared build cannot be verified")
+
     unchecked = sorted(k for k in got if k not in expected_versions)
     if unchecked:
-        declared = ",".join(f"{k}={got[k]}" for k in sorted(got))
+        pin = ",".join(f"{k}={got[k]}" for k in sorted(got))
         problems.append(
             "incomplete version pin: the file declares "
             + ", ".join(f"'{k}'" for k in unchecked)
             + " but --expect-versions does not cover "
             + ("it" if len(unchecked) == 1 else "them")
             + " — an unchecked component drifts SILENTLY (asset-hash mismatch is only "
-            "a warning on the server). Pin every declared component: " + declared)
+            "a warning on the server). Pin every declared component: " + pin)
     return problems
 
 
@@ -222,9 +314,36 @@ def scan_problems(f, expected_versions=None):
     return problems
 
 
+def _unidentified_component_advisory(f):
+    """Name components the file declares but does not identify at all.
+
+    These are NOT fatal (see `_component_identity` for why), but they must never be
+    silent: the operator is entitled to know that part of what the file declares sits
+    outside what --expect-versions can ever verify. Reported whether or not a pin was
+    supplied, because it is a property of the file rather than of the invocation.
+    """
+    try:
+        declared = read_declared_components(f["data"].attrs)
+    except Exception:
+        return []
+    if not declared:
+        return []
+    blind = sorted(k for k, e in declared.items() if _component_identity(e) is None)
+    if not blind:
+        return []
+    them = "it" if len(blind) == 1 else "them"
+    return ["declares " + ", ".join(f"'{k}'" for k in blind)
+            + " with neither a version nor a git_hash — nothing in the file identifies "
+            + them + ", so --expect-versions can never verify " + them
+            + "; if " + ("it drifts" if len(blind) == 1 else "they drift")
+            + " on the server this gate will not see it"]
+
+
 def scan_advisories(f):
     """Core non-fatal advisory scan against an already-open HDF5 file handle."""
     advisories = []
+    if "data" in f:
+        advisories.extend(_unidentified_component_advisory(f))
     for demo in [k for k in f.get("data", {}) if k.startswith("demo")]:
         g = f["data"][demo]
         present = [k for k in ("state", "state_size") if k in g]

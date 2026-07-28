@@ -8,16 +8,18 @@ from momagen.utils.source_demo_validation import validate_processed_source, sync
 
 
 def _make_demo(path, T=10, with_state=False, eef_shape=(8, 4),
-               objects=("can_of_soda_595",), og_version="3.7.1"):
+               objects=("can_of_soda_595",), og_version="3.7.1", extra_versions=None):
     with h5py.File(path, "w") as f:
         d = f.create_group("data")
         d.attrs["env_args"] = '{"env_name": "tidybot_picking_up_trash_task_D0"}'
         # Versions live nested in the scene_file JSON, exactly as OmniGibson writes them.
-        d.attrs["scene_file"] = json.dumps({"versions": {
+        versions = {
             "omnigibson": {"version": og_version, "git_hash": "deadbeef"},
             "bddl": {"version": "3.7.0", "git_hash": "deadbeef"},
             "behavior-1k-assets": {"version": "3.7.2rc1"},
-        }})
+        }
+        versions.update(extra_versions or {})
+        d.attrs["scene_file"] = json.dumps({"versions": versions})
         f.create_group("mask").create_dataset("use", data=np.array([b"demo_0"]))
         g = d.create_group("demo_0")
         g.create_dataset("action", data=np.zeros((T, 11), dtype=np.float32))
@@ -141,6 +143,83 @@ def test_partial_pin_reports_unchecked_even_when_named_ones_drift(tmp_path):
     assert "3.9.0" in joined and "behavior-1k-assets" in joined
 
 
+# --- declared-but-unverifiable components ------------------------------------
+#
+# read_versions only surfaces components whose entry carries a usable "version".
+# A component declared with no readable version was therefore invisible to BOTH
+# the comparison loop and the completeness set — a second silent-PASS door in the
+# same class as the partial pin above. The two shapes are NOT equivalent and are
+# treated differently on purpose; see the module docstring on _component_identity.
+
+def test_component_declared_with_only_a_git_hash_is_rejected(tmp_path):
+    # The dangerous shape: behavior-1k-assets is declared and pinned to a CONCRETE
+    # build by its git_hash, but carries no "version" key. It can differ between
+    # file and server, and nothing was checking it.
+    p = tmp_path / "hashonly.hdf5"
+    _make_demo(p, extra_versions={"behavior-1k-assets": {"git_hash": "cafebabe"}})
+    problems = validate_processed_source(
+        str(p), expected_versions={"omnigibson": "3.7.1", "bddl": "3.7.0"})
+    assert problems, "a declared component with an unreadable version must not PASS"
+    joined = " ".join(problems)
+    assert "behavior-1k-assets" in joined
+    assert "cafebabe" in joined, "the operator needs the identity that IS present"
+
+
+def test_component_declared_with_only_a_git_hash_is_rejected_even_when_named(tmp_path):
+    # Naming it does not help: there is no version in the file to compare against,
+    # so the gate must still refuse rather than treat "absent" as "matching".
+    p = tmp_path / "hashonly2.hdf5"
+    _make_demo(p, extra_versions={"behavior-1k-assets": {"git_hash": "cafebabe"}})
+    problems = validate_processed_source(str(p), expected_versions=FULL_PIN)
+    assert any("behavior-1k-assets" in x for x in problems)
+
+
+def test_fully_unidentified_component_does_not_break_a_full_pin(tmp_path):
+    # OmniGibson writes {"version": null, "git_hash": null} for a component it
+    # cannot identify at all — the SHIPPED file declares omnigibson-robot-assets
+    # exactly this way. There is no fact to compare and no string that could ever
+    # satisfy a pin, so making it fatal would render --expect-versions permanently
+    # unsatisfiable on every file OmniGibson writes. See the advisory test below.
+    p = tmp_path / "nullcomp.hdf5"
+    _make_demo(p, extra_versions={"omnigibson-robot-assets": {"version": None,
+                                                              "git_hash": None}})
+    assert validate_processed_source(str(p), expected_versions=FULL_PIN) == []
+
+
+def test_fully_unidentified_component_is_advised(tmp_path):
+    # Not fatal, but never silent: the operator must be told the file declares
+    # something --expect-versions can never verify.
+    p = tmp_path / "nullcomp2.hdf5"
+    _make_demo(p, extra_versions={"omnigibson-robot-assets": {"version": None,
+                                                              "git_hash": None}})
+    advisories = sync_advisories(str(p))
+    assert any("omnigibson-robot-assets" in a for a in advisories)
+
+
+def test_unidentified_component_advisory_absent_when_all_are_identified(tmp_path):
+    p = tmp_path / "allident.hdf5"
+    _make_demo(p)
+    assert not any("verify" in a for a in sync_advisories(str(p)))
+
+
+def test_read_versions_keeps_its_usable_only_contract(tmp_path):
+    # read_versions is the "what can I compare?" view and must keep dropping
+    # unusable entries; read_declared_components is the "what is declared?" view
+    # and must drop nothing. The gate needs both.
+    from momagen.utils.source_demo_validation import (
+        read_declared_components,
+        read_versions,
+    )
+
+    p = tmp_path / "views.hdf5"
+    _make_demo(p, extra_versions={"omnigibson-robot-assets": {"version": None,
+                                                              "git_hash": None}})
+    with h5py.File(p, "r") as f:
+        assert read_versions(f["data"].attrs) == FULL_PIN
+        assert set(read_declared_components(f["data"].attrs)) == set(FULL_PIN) | {
+            "omnigibson-robot-assets"}
+
+
 def test_zero_length_demo_rejected(tmp_path):
     # A truncated prepare_src_dataset.py run leaves action (0, 11), eef_pose (0, 8, 4),
     # ... — every shape and length check agrees, so it used to validate clean. A
@@ -248,6 +327,41 @@ def test_real_shipped_demo_versions_are_readable():
     # The fixture's FULL_PIN must stay in step with what the real file declares,
     # otherwise the partial-pin guard above is testing a shape that does not exist.
     assert versions == FULL_PIN
+
+
+def _shipped_demo():
+    import os
+
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    real = os.path.join(
+        repo_root, "momagen", "datasets", "processed_source_demos",
+        "tidybot_picking_up_trash.hdf5")
+    if not os.path.exists(real):
+        pytest.skip("shipped demo not present")
+    return real
+
+
+def test_shipped_demo_declares_a_null_version_component():
+    # This is the boundary every rule above has to survive: the REAL file declares
+    # omnigibson-robot-assets with version AND git_hash both null. Pinned here so
+    # that if the shipped file ever stops having this shape, the two boundary tests
+    # below are known to have stopped testing anything.
+    from momagen.utils.source_demo_validation import read_declared_components
+
+    with h5py.File(_shipped_demo(), "r") as f:
+        declared = read_declared_components(f["data"].attrs)
+    assert declared["omnigibson-robot-assets"] == {"version": None, "git_hash": None}
+    assert set(declared) == set(FULL_PIN) | {"omnigibson-robot-assets"}
+
+
+def test_shipped_demo_still_validates_with_no_flags():
+    assert validate_processed_source(_shipped_demo()) == []
+
+
+def test_shipped_demo_still_validates_under_the_full_pin():
+    # The full pin names the three verifiable components and NOT the null one —
+    # exactly the invocation the CLI help tells the operator to use. It must pass.
+    assert validate_processed_source(_shipped_demo(), expected_versions=FULL_PIN) == []
 
 
 def test_gripper_action_width_rejected(tmp_path):
