@@ -44,7 +44,8 @@ def test_debounce_suppresses_first_samples():
     assert t.update(np.array([1.0, 0.0, 0.0]), q) is not None
 
 
-def test_delta_is_expressed_in_the_anchor_frame():
+def test_delta_is_plain_xr_difference():
+    # dpos = converted(pos) - converted(anchor), no frame rotation (arm mode).
     t = WebXRDeltaTracker(enable_threshold=0)
     q = np.array([0.0, 0.0, 0.0, 1.0])
     t.update(np.array([1.0, 0.0, 0.0]), q)          # anchor
@@ -52,21 +53,21 @@ def test_delta_is_expressed_in_the_anchor_frame():
     assert np.allclose(dpos, np.array([0.0, -0.25, 0.0]))
 
 
-def test_rotated_anchor_rotates_the_delta():
-    # The delta must be expressed in the ANCHOR's frame, so holding the phone at a
-    # different yaw changes the robot-frame direction of the same hand motion.
+def test_delta_independent_of_held_orientation():
+    # ARM mode uses the plain XR-frame difference (phone_policy.py:175), so the SAME
+    # hand motion must produce the SAME robot-frame delta no matter how the phone is
+    # held. (The device-camera offset cancels in the difference.) Rotating the delta
+    # into the anchor frame is the BASE-mode formula and would break this.
     q0 = np.array([0.0, 0.0, 0.0, 1.0])
     q1 = R.from_euler("y", 90, degrees=True).as_quat()
 
-    a = WebXRDeltaTracker(enable_threshold=0)
-    a.update(np.array([0.0, 0.0, 0.0]), q0)
-    da, _ = a.update(np.array([1.0, 0.0, 0.0]), q0)
+    def delta_with(q):
+        t = WebXRDeltaTracker(enable_threshold=0)
+        t.update(np.array([1.0, 0.0, 0.0]), q)
+        return t.update(np.array([1.25, 0.0, 0.0]), q)[0]
 
-    b = WebXRDeltaTracker(enable_threshold=0)
-    b.update(np.array([0.0, 0.0, 0.0]), q1)
-    db, _ = b.update(np.array([1.0, 0.0, 0.0]), q1)
-
-    assert not np.allclose(da, db), "anchor orientation must affect the delta frame"
+    assert np.allclose(delta_with(q0), np.array([0.0, -0.25, 0.0]))
+    assert np.allclose(delta_with(q0), delta_with(q1))
 
 
 def test_release_reanchors_instead_of_jumping():
@@ -86,18 +87,69 @@ def test_apply_webxr_moves_teleop_and_gripper():
         def nudge(self, dpos=None, dori=None):
             self.dpos = dpos
 
-    t = WebXRDeltaTracker(enable_threshold=0)
-    stub = StubTeleop()
-    q = dict(or_x=0.0, or_y=0.0, or_z=0.0, or_w=1.0)
     from momagen.utils.webxr_teleop import apply_webxr
 
-    apply_webxr({"teleop_mode": "arm", "pos_x": 0.0, "pos_y": 0.0, "pos_z": 0.0, **q}, stub, t)
-    apply_webxr({"teleop_mode": "arm", "pos_x": 0.1, "pos_y": 0.0, "pos_z": 0.0, **q}, stub, t)
+    def wire(x, gripper=None):
+        # The real client wire format: nested position/orientation (index.html:247-257)
+        msg = {
+            "teleop_mode": "arm",
+            "position": {"x": x, "y": 0.0, "z": 0.0},
+            "orientation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0},
+        }
+        if gripper is not None:
+            msg["gripper_delta"] = gripper
+        return msg
+
+    t = WebXRDeltaTracker(enable_threshold=0)
+    stub = StubTeleop()
+    apply_webxr(wire(0.0), stub, t)      # anchors
+    apply_webxr(wire(0.1), stub, t)
     assert stub.dpos is not None and np.linalg.norm(stub.dpos) > 0
 
-    apply_webxr({"teleop_mode": "arm", "gripper_delta": 1.0, "pos_x": 0.1, "pos_y": 0.0,
-                 "pos_z": 0.0, **q}, stub, t)
+    apply_webxr(wire(0.1, gripper=1.0), stub, t)
     assert stub.gripper_closed is True
+
+
+def test_apply_webxr_accepts_flat_pos_keys_too():
+    # The flat spelling is what tidybot_ros's ROS publisher produced; accept both.
+    class StubTeleop:
+        def __init__(self):
+            self.dpos = None
+            self.gripper_closed = False
+
+        def nudge(self, dpos=None, dori=None):
+            self.dpos = dpos
+
+    from momagen.utils.webxr_teleop import apply_webxr
+
+    def flat(x):
+        return {"teleop_mode": "arm", "pos_x": x, "pos_y": 0.0, "pos_z": 0.0,
+                "or_x": 0.0, "or_y": 0.0, "or_z": 0.0, "or_w": 1.0}
+
+    t = WebXRDeltaTracker(enable_threshold=0)
+    stub = StubTeleop()
+    apply_webxr(flat(0.0), stub, t)
+    apply_webxr(flat(0.1), stub, t)
+    assert stub.dpos is not None
+
+
+def test_apply_webxr_tolerates_malformed_message():
+    # A partial message must not raise — it simply must not move the robot.
+    class StubTeleop:
+        def __init__(self):
+            self.dpos = None
+            self.gripper_closed = False
+
+        def nudge(self, dpos=None, dori=None):
+            self.dpos = dpos
+
+    from momagen.utils.webxr_teleop import apply_webxr
+
+    t = WebXRDeltaTracker(enable_threshold=0)
+    stub = StubTeleop()
+    apply_webxr({"teleop_mode": "arm"}, stub, t)                              # no pose
+    apply_webxr({"teleop_mode": "arm", "position": {"x": 1.0}}, stub, t)      # partial
+    assert stub.dpos is None
 
 
 def test_state_update_message_releases_and_does_not_move():

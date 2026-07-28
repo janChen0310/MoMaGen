@@ -26,12 +26,15 @@ def convert_webxr_pose(pos, quat):
 
 
 class WebXRDeltaTracker:
-    """Turns absolute phone poses into deltas expressed in the ANCHOR's frame.
+    """Turns absolute phone poses into deltas relative to a touch-down anchor.
 
     `enable_threshold` reproduces tidybot_ros's `enable_counts > 2` debounce, which
-    prevents a jump on touch-down. Expressing the delta in the anchor frame (rather
-    than the world frame) is what makes the mapping independent of how the operator
-    happens to be holding the phone when they engage.
+    prevents a jump on touch-down. The position delta is the plain XR-frame
+    difference (arm mode, phone_policy.py:175) — NOT rotated into the anchor frame,
+    since WebXR's `local` reference space is fixed for the whole session and rotating
+    it would make the mapping depend on how the operator happened to be holding the
+    phone at touch-down (that rotation is the BASE-mode formula, phone_policy.py:136-138,
+    which this tracker does not implement).
     """
 
     def __init__(self, enable_threshold=2):
@@ -47,7 +50,7 @@ class WebXRDeltaTracker:
         self.ref_rot = None
 
     def update(self, pos, quat):
-        """Return (dpos, drot) in the anchor frame, or None while debouncing/anchoring."""
+        """Return (dpos, drot) relative to the anchor, or None while debouncing/anchoring."""
         pos, rot = convert_webxr_pose(pos, quat)
         self.count += 1
         if self.count <= self.enable_threshold:
@@ -55,18 +58,59 @@ class WebXRDeltaTracker:
         if self.ref_pos is None:
             self.ref_pos, self.ref_rot = pos, rot
             return None
-        dpos = self.ref_rot.inv().apply(pos - self.ref_pos)
-        drot = self.ref_rot.inv() * rot
+        # ARM mode delta is the plain XR-frame difference — phone_policy.py:175
+        # `pos_diff = xr_pos - self.arm_xr_ref_pos  # WebXR delta in XR/world frame`.
+        # Do NOT rotate it into the anchor frame: that is the BASE-mode formula
+        # (phone_policy.py:136-138) and applying it here would make the mapping depend
+        # on how the operator happened to hold the phone at touch-down. WebXR's `local`
+        # reference space is fixed for the whole session, so the plain difference is right.
+        dpos = pos - self.ref_pos
+        # World-frame composition order, matching `xr_quat * arm_xr_ref_rot_inv`
+        # (phone_policy.py:180-182). Order matters — these do not commute.
+        drot = rot * self.ref_rot.inv()
         return dpos, drot
+
+
+def _xr_pose_from_msg(msg):
+    """Read the WebXR client's wire format.
+
+    index.html sends NESTED objects — `data.position = {x, y, z}` and
+    `data.orientation = {x, y, z, w}` (index.html:247-257). The flat pos_x/or_x form
+    existed only inside tidybot_ros's deleted rclpy publisher, which flattened these
+    into a ROS TeleopMsg. Both spellings are accepted so either producer works.
+    Returns (pos, quat) or None when the message carries no pose.
+    """
+    position, orientation = msg.get("position"), msg.get("orientation")
+    if isinstance(position, dict) and isinstance(orientation, dict):
+        try:
+            pos = np.array([position["x"], position["y"], position["z"]], dtype=float)
+            quat = np.array(
+                [orientation["x"], orientation["y"], orientation["z"], orientation["w"]],
+                dtype=float,
+            )
+        except KeyError:
+            return None
+        return pos, quat
+    if "pos_x" in msg and "or_w" in msg:
+        try:
+            pos = np.array([msg["pos_x"], msg["pos_y"], msg["pos_z"]], dtype=float)
+            quat = np.array([msg["or_x"], msg["or_y"], msg["or_z"], msg["or_w"]], dtype=float)
+        except KeyError:
+            return None
+        return pos, quat
+    return None
 
 
 def apply_webxr(msg, teleop, tracker):
     """Apply one WebXR message to a CartesianTeleop-like object.
 
-    `msg` keys mirror tidybot_ros's TeleopMsg: state_update, teleop_mode,
-    pos_x/pos_y/pos_z, or_x/or_y/or_z/or_w, gripper_delta.
+    Tolerates partial/malformed messages: anything without a usable pose simply does
+    not move the robot.
     """
     # state_update messages are episode control (started/ended/reset), not motion.
+    # NOTE: this is a deliberate deviation from phone_policy.py, which early-returns
+    # on state_update without releasing; we release here so an episode boundary always
+    # drops the anchor rather than leaving a stale one for the next episode.
     if msg.get("state_update"):
         tracker.release()
         return
@@ -76,12 +120,12 @@ def apply_webxr(msg, teleop, tracker):
         return
 
     if msg.get("teleop_mode") == "arm":
-        delta = tracker.update(
-            np.array([msg["pos_x"], msg["pos_y"], msg["pos_z"]]),
-            np.array([msg["or_x"], msg["or_y"], msg["or_z"], msg["or_w"]]),
-        )
-        if delta is not None:
-            teleop.nudge(dpos=delta[0])
+        pose = _xr_pose_from_msg(msg)
+        if pose is not None:
+            delta = tracker.update(pose[0], pose[1])
+            if delta is not None:
+                teleop.nudge(dpos=delta[0])
 
-    if msg.get("gripper_delta"):
-        teleop.gripper_closed = msg["gripper_delta"] > 0.5
+    gripper_delta = msg.get("gripper_delta")
+    if gripper_delta is not None:
+        teleop.gripper_closed = gripper_delta > 0.5

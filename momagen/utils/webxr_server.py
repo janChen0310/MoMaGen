@@ -35,16 +35,24 @@ _ASSETS_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "webxr"
 )
 
+# Default bound for the received-message deque. For teleop only the newest pose
+# matters, so a stalled consumer (e.g. sim loop paused/crashed) should drop the
+# oldest stale message rather than grow memory without bound.
+_DEFAULT_QUEUE_MAXLEN = 100
+
 
 class WebServer:
     """Flask + Socket.IO server that serves the phone webapp and queues its messages.
 
     `queue` is a `collections.deque`; every WebXR message received over the socket
     is appended to it for a simulator loop to `popleft()`, mirroring how `key_queue`
-    is drained today for the keyboard-teleop fallback.
+    is drained today for the keyboard-teleop fallback. If no `queue` is supplied, a
+    bounded one (`maxlen=_DEFAULT_QUEUE_MAXLEN`) is created automatically; pass one
+    explicitly to choose a different bound (or, deliberately, an unbounded deque).
     """
 
-    def __init__(self, queue: deque, record_enabled: bool, assets_dir: str = _ASSETS_DIR):
+    def __init__(self, queue: deque = None, record_enabled: bool = False,
+                 assets_dir: str = _ASSETS_DIR):
         self.app = Flask(
             __name__,
             template_folder=assets_dir,
@@ -54,7 +62,7 @@ class WebServer:
         # Use threading async mode with Werkzeug dev server; requires simple-websocket
         # installed for WS.
         self.socketio = SocketIO(self.app, async_mode="threading", cors_allowed_origins="*")
-        self.queue = queue
+        self.queue = queue if queue is not None else deque(maxlen=_DEFAULT_QUEUE_MAXLEN)
         self.address = None
         self.port = 5000
         self.server_thread = None
