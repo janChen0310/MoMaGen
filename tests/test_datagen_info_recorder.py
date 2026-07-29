@@ -1,3 +1,5 @@
+import os
+
 import h5py
 import numpy as np
 import pytest
@@ -29,6 +31,69 @@ class FakeInterface:
         self.seen_actions.append(action)
         self.t += 1
         return FakeDatagenInfo(self.t - 1)
+
+
+INTERFACE_NAME = "MG_TidyBotPickingUpTrash"
+INTERFACE_TYPE = "omnigibson_tidybot"
+
+
+def _shipped_demo():
+    """Path to the real processed demo, or skip. Derived from __file__, not the cwd —
+    a relative path would make this drift guard silently skip whenever pytest is
+    invoked from anywhere but the repo root."""
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(
+        repo_root, "momagen", "datasets", "processed_source_demos",
+        "tidybot_picking_up_trash.hdf5")
+    if not os.path.exists(path):
+        pytest.skip("shipped demo not present")
+    return path
+
+
+def test_fake_datagen_info_matches_the_real_shipped_schema():
+    # Everything else in this module is written against FakeDatagenInfo, so
+    # `test_written_file_passes_the_sync_validator` only proves recorder<->validator
+    # agreement FOR THE FAKE. Nothing catches the fake drifting away from what
+    # OmniGibsonInterfaceTidyBot.get_datagen_info() actually returns — at which point
+    # these tests would keep passing while the recorder writes an unusable file.
+    # Pin the fake against the real shipped demo, same style as the validator's
+    # test_real_shipped_demo_versions_are_readable.
+    fake = FakeDatagenInfo(0).to_dict()
+    with h5py.File(_shipped_demo(), "r") as f:
+        demo = sorted(f["data"].keys())[-1]
+        dg = f["data"][demo]["datagen_info"]
+
+        assert set(dg.keys()) == set(fake), (
+            f"fake datagen_info fields {sorted(fake)} != real {sorted(dg.keys())}")
+
+        # Per-frame shape: the real datasets are (T, ...) stacks of exactly what
+        # to_dict() returns for a single step, which is what recorder.write() builds
+        # with np.stack. So real.shape[1:] must equal the fake's per-frame shape.
+        for field in ("base_pose", "eef_pose", "gripper_action"):
+            assert dg[field].shape[1:] == np.asarray(fake[field]).shape, (
+                f"{field}: real per-frame shape {dg[field].shape[1:]} != fake "
+                f"{np.asarray(fake[field]).shape}")
+        # ...and the documented shapes themselves, so a change on BOTH sides at once
+        # still trips something.
+        assert dg["base_pose"].shape[1:] == (4, 4)
+        assert dg["eef_pose"].shape[1:] == (8, 4)
+        assert dg["gripper_action"].shape[1:] == (2,)
+
+        assert isinstance(dg["object_poses"], h5py.Group)
+        fake_obj = fake["object_poses"]
+        for name in dg["object_poses"]:
+            assert dg["object_poses"][name].shape[1:] == (4, 4)
+        for name, pose in fake_obj.items():
+            # The fake names a real object of this demo rather than an invented one.
+            assert name in dg["object_poses"], (
+                f"fake object_poses key {name!r} is not in the real demo "
+                f"{sorted(dg['object_poses'].keys())}")
+            assert dg["object_poses"][name].shape[1:] == np.asarray(pose).shape
+
+        # The interface identity every other test in this module passes to the
+        # recorder must be the identity the real file carries, too.
+        assert dg.attrs["env_interface_name"] == INTERFACE_NAME
+        assert dg.attrs["env_interface_type"] == INTERFACE_TYPE
 
 
 def _empty_demo(path, T):

@@ -71,6 +71,47 @@ class WebXRDeltaTracker:
         return dpos, drot
 
 
+# Level at which the (continuous) gripper command counts as CLOSED. 0.5 is the
+# midpoint of phone_policy.py's [0, 1] gripper command range.
+GRIPPER_CLOSED_LEVEL = 0.5
+
+
+def latch_gripper(gripper_closed, gripper_delta):
+    """Fold one `gripper_delta` into a LATCHING boolean gripper state.
+
+    This reproduces phone_policy.py's `clip(gripper_ref + gripper_delta, 0, 1)`
+    (phone_policy.py:197-200) with `gripper_ref` taken from the state the gripper is
+    already latched in, then thresholded back to the boolean `CartesianTeleop`
+    exposes. Reference-plus-delta is the whole point, and dropping it is a real
+    defect rather than a simplification:
+
+        index.html's `handleTouch` sets `touchDeltaY = (touchStartY - clientY)/...`
+        and `touchstart` sets `touchStartY = clientY`, so EVERY touch-down sends
+        `gripper_delta = 0.0` (index.html:196-208, 260). Thresholding the raw delta
+        (`gripper_delta > 0.5`) therefore reads 0.0 as "open" and DROPS whatever the
+        operator was holding the moment they lift a finger and re-grip the phone.
+
+    With the reference restored, a 0.0 delta re-asserts the current state instead of
+    clearing it: closed stays closed, open stays open. Swiping up past the midpoint
+    closes; swiping down past it opens (touchDeltaY is clipped to [-1, 1], so a full
+    swipe in either direction always crosses the threshold).
+
+    A non-finite delta (a JSON `null` coordinate becomes NaN under `float()`, and
+    `nan > 0.5` is False) would otherwise silently re-open a closed gripper, so it is
+    treated like an absent delta: leave the latch alone.
+    """
+    if gripper_delta is None:
+        return gripper_closed
+    try:
+        delta = float(gripper_delta)
+    except (TypeError, ValueError):
+        return gripper_closed
+    if not np.isfinite(delta):
+        return gripper_closed
+    ref = 1.0 if gripper_closed else 0.0
+    return bool(min(1.0, max(0.0, ref + delta)) > GRIPPER_CLOSED_LEVEL)
+
+
 def _finite_pose(pos, quat):
     """Return (pos, quat) only if every component is finite, else None.
 
@@ -146,19 +187,17 @@ def apply_webxr(msg, teleop, tracker):
                 # test_drot_is_the_world_order_composition.
                 teleop.nudge(dpos=delta[0])
 
-    # DELIBERATE DEVIATION from phone_policy.py (like the state_update release above),
-    # in two parts:
-    #   1. Latching, not incremental. The original publishes a continuous position,
-    #      `clip(gripper_ref + gripper_delta, 0, 1)`. The collector's CartesianTeleop
-    #      exposes a BOOLEAN `gripper_closed`, so there is no continuum to accumulate
-    #      into — the command is latched at 0.5 instead.
-    #   2. Applied outside the debounce/anchor gate. The original only reaches its
-    #      gripper publish after `enable_counts > 2` inside `case "arm"`. Here the
-    #      latch follows the phone's button state on every message. That is safe
-    #      precisely BECAUSE it latches: there is no reference pose to be captured at
-    #      the wrong moment and no accumulated drift, so an early message just sets
-    #      the boolean the operator is already holding. A missing `gripper_delta`
-    #      leaves the latch untouched rather than releasing the grasp.
-    gripper_delta = msg.get("gripper_delta")
-    if gripper_delta is not None:
-        teleop.gripper_closed = gripper_delta > 0.5
+    # The gripper command keeps phone_policy.py's reference-plus-delta semantics
+    # (see `latch_gripper`) but collapses the [0, 1] continuum to the BOOLEAN
+    # `gripper_closed` that CartesianTeleop exposes. The reference is the state the
+    # gripper is already latched in, so a 0.0 delta — which is exactly what every
+    # touch-down sends — re-asserts the grasp instead of dropping it.
+    #
+    # DELIBERATE DEVIATION from phone_policy.py (like the state_update release
+    # above): this is applied outside the debounce/anchor gate. The original only
+    # reaches its gripper publish after `enable_counts > 2` inside `case "arm"`.
+    # Here the latch follows the phone's touch state on every message. That is safe
+    # precisely BECAUSE it latches from the current state: there is no reference
+    # pose to be captured at the wrong moment and no accumulated drift, so an early
+    # message just re-asserts what the operator is already holding.
+    teleop.gripper_closed = latch_gripper(teleop.gripper_closed, msg.get("gripper_delta"))

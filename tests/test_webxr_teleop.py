@@ -262,27 +262,92 @@ def test_non_finite_flat_pose_is_rejected():
     assert _xr_pose_from_msg(msg) is None
 
 
-def test_gripper_latches_on_the_threshold():
-    # Deliberate deviation from phone_policy.py's incremental clip(ref + delta, 0, 1):
-    # the collector's CartesianTeleop exposes a BOOLEAN gripper_closed, so the
-    # continuous command is latched at 0.5. Pinned here so the deviation is a
-    # decision, not a drift.
+_GRIPPER_BASE_MSG = {"teleop_mode": "arm",
+                     "position": {"x": 0.0, "y": 0.0, "z": 0.0},
+                     "orientation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0}}
+
+
+def test_gripper_stays_closed_when_the_operator_re_touches():
+    # THE regression: index.html's handleTouch computes
+    # touchDeltaY = (touchStartY - touch.clientY)/... and `touchstart` sets
+    # touchStartY = touch.clientY, so EVERY touch-down sends gripper_delta = 0.0
+    # (index.html:196-208, 260). Thresholding the RAW delta (`gripper_delta > 0.5`)
+    # read that 0.0 as "open", so the operator closing on an object, lifting a
+    # finger to re-grip the phone, and touching again DROPPED the object. The latch
+    # has to be relative to the state already held (phone_policy.py's gripper_ref).
     from momagen.utils.webxr_teleop import apply_webxr
 
     t = WebXRDeltaTracker(enable_threshold=0)
     stub = _StubTeleop()
-    base = {"teleop_mode": "arm",
-            "position": {"x": 0.0, "y": 0.0, "z": 0.0},
-            "orientation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0}}
 
-    apply_webxr(dict(base, gripper_delta=1.0), stub, t)
+    apply_webxr(dict(_GRIPPER_BASE_MSG, gripper_delta=1.0), stub, t)   # close on the object
     assert stub.gripper_closed is True
-    apply_webxr(dict(base, gripper_delta=0.0), stub, t)
-    assert stub.gripper_closed is False, "latching, not accumulating"
+
+    apply_webxr(dict(_GRIPPER_BASE_MSG, gripper_delta=0.0), stub, t)   # finger re-touch
+    assert stub.gripper_closed is True, "a fresh touch (delta 0.0) must not drop the grasp"
+
+    # ...and it must keep holding for every subsequent frame of that touch, not
+    # just the first one.
+    for _ in range(5):
+        apply_webxr(dict(_GRIPPER_BASE_MSG, gripper_delta=0.0), stub, t)
+    assert stub.gripper_closed is True
+
+
+def test_gripper_latches_on_the_threshold():
+    # Deviation from phone_policy.py's continuous clip(gripper_ref + delta, 0, 1):
+    # CartesianTeleop exposes a BOOLEAN gripper_closed, so that command is
+    # thresholded at its 0.5 midpoint. The reference-plus-delta part is KEPT (that
+    # is what makes it latching); only the continuum collapses. Pinned here so the
+    # deviation is a decision, not a drift.
+    from momagen.utils.webxr_teleop import apply_webxr
+
+    t = WebXRDeltaTracker(enable_threshold=0)
+    stub = _StubTeleop()
+    base = _GRIPPER_BASE_MSG
+
+    # From open: 0.5 is not > 0.5, a bigger swipe up closes.
     apply_webxr(dict(base, gripper_delta=0.5), stub, t)
     assert stub.gripper_closed is False, "0.5 is not > 0.5"
+    apply_webxr(dict(base, gripper_delta=0.6), stub, t)
+    assert stub.gripper_closed is True
+
+    # From closed: a swipe DOWN past the midpoint is what opens it again.
+    apply_webxr(dict(base, gripper_delta=-0.6), stub, t)
+    assert stub.gripper_closed is False, "a downward swipe must open the gripper"
+
+    # Neither state drifts on repeated zero deltas.
+    apply_webxr(dict(base, gripper_delta=0.0), stub, t)
+    assert stub.gripper_closed is False
 
     # Absent gripper_delta must leave the latch alone rather than opening it.
     apply_webxr(dict(base, gripper_delta=1.0), stub, t)
     apply_webxr(base, stub, t)
     assert stub.gripper_closed is True
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), "not-a-number", [1.0]])
+def test_unusable_gripper_delta_leaves_the_latch_alone(bad):
+    # `nan > 0.5` is False and `float("bogus")` raises, so an unusable delta would
+    # otherwise either silently drop the grasp or kill the handler mid-episode.
+    from momagen.utils.webxr_teleop import apply_webxr
+
+    t = WebXRDeltaTracker(enable_threshold=0)
+    stub = _StubTeleop()
+    apply_webxr(dict(_GRIPPER_BASE_MSG, gripper_delta=1.0), stub, t)
+    assert stub.gripper_closed is True
+    apply_webxr(dict(_GRIPPER_BASE_MSG, gripper_delta=bad), stub, t)
+    assert stub.gripper_closed is True
+
+
+def test_latch_gripper_matches_the_reference_plus_delta_formula():
+    # Pins the mapping itself against phone_policy.py:197-200
+    # (`clip(gripper_ref + gripper_delta, 0, 1)`) with the boolean state as the
+    # reference, so the "latching" property is a formula and not a special case.
+    from momagen.utils.webxr_teleop import GRIPPER_CLOSED_LEVEL, latch_gripper
+
+    for closed in (False, True):
+        ref = 1.0 if closed else 0.0
+        for delta in (-1.0, -0.6, -0.5, -0.1, 0.0, 0.1, 0.5, 0.6, 1.0):
+            expected = min(1.0, max(0.0, ref + delta)) > GRIPPER_CLOSED_LEVEL
+            assert latch_gripper(closed, delta) is expected, (closed, delta)
+        assert latch_gripper(closed, None) is closed

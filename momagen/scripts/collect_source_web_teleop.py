@@ -6,7 +6,10 @@ countertop, trash can on the floor). Drive: grasp the can, carry it to the trash
 Renders offscreen, serves an MJPEG stream + 20Hz web keyboard input over HTTP."""
 import os, io, math, threading, collections
 os.environ["OMNIGIBSON_HEADLESS"] = "1"; os.environ["OMNI_KIT_ACCEPT_EULA"] = "YES"
-os.environ.setdefault("OMNIGIBSON_GPU_ID", "0")
+# NB: do NOT set OMNIGIBSON_GPU_ID here -- on multi-GPU boxes the worker GPU is picked
+# with CUDA_VISIBLE_DEVICES alone; combining the two breaks Vulkan device enumeration
+# (Isaac Kit segfaults at boot in the XR viewport extension). Same fix as
+# collect_source_scripted_trash.py / collect_source_scripted_coffee.py.
 import numpy as np, torch as th
 try:
     from PIL import Image
@@ -38,16 +41,43 @@ def _yaw_of(quat):
 # (`base_cmd *= 0.9`). That mattered because "base" is a *velocity* controller
 # (HolonomicBaseJointController, motor_type="velocity"): a stale, un-decayed
 # velocity command integrates position error for as long as network lag delays
-# the next update (drift proportional to lag duration). A bounded per-event
-# nudge to an absolute target cannot do that -- a burst of late, queued key
-# events can only ever advance the target by (n_events * BASE_*_STEP), and the
-# base servos toward wherever the target currently sits and simply stops there,
-# regardless of how long it took the corresponding "stop" (i.e. no more nudges)
-# to become apparent.
+# the next update (drift proportional to lag duration).
+#
+# The target is NOT bounded by the per-event step size alone, despite what this
+# comment used to claim ("the base ... simply stops there"): the browser resends
+# every held key every 50 ms (20 Hz), so holding a single key advances the target
+# at 20 * BASE_POS_STEP = 1.0 m/s while action() below clamps the ACTUAL command
+# to BASE_LIN = 0.4 m/s. Held for 5 s that is 5.0 m of target vs. ~2.9 m actually
+# travelled -- 2.1 m of lead -- and the base keeps driving for ~3.6 s AFTER the
+# key is released (proportionally for yaw too). A burst of late, queued key
+# events is exactly as unbounded, however large it is. nudge_base fixes this
+# directly by clamping how far base_target_xy/base_target_yaw may lead the
+# CURRENT base pose on every call (_BASE_LEAD_LIN_M / _BASE_LEAD_YAW_RAD below),
+# so the target can never run away and the overrun after key-release is bounded
+# to a fraction of a second -- comparable to, or shorter than, the old decaying
+# command's <0.5s coast.
 BASE_POS_STEP = 0.05   # m nudged onto the target per processed base key event
 BASE_YAW_STEP = 0.05   # rad nudged onto the target per processed base key event
-_BASE_KP_LIN = 10.0    # error(m) -> normalized cmd, clamped to +/-BASE_LIN below
-_BASE_KP_ANG = 10.0    # error(rad) -> normalized cmd, clamped to +/-BASE_ANG below
+
+# How far (in the base's actual pose) the absolute target may lead, in position
+# and heading. Sized to _BASE_LEAD_S of travel at the clamped top speed
+# (BASE_LIN/BASE_ANG) -- a small, fixed lookahead the target can never exceed,
+# regardless of how many nudges land before the base's next step.
+_BASE_LEAD_S = 0.25
+_BASE_LEAD_LIN_M = BASE_LIN * _BASE_LEAD_S     # 0.1 m
+_BASE_LEAD_YAW_RAD = BASE_ANG * _BASE_LEAD_S   # 0.1 rad
+
+# Proportional gain, chosen so the lead cap ITSELF is where the command reaches
+# BASE_LIN/BASE_ANG -- not an arbitrary value that saturates on every nudge
+# regardless of the cap. A lone tap (error = one BASE_POS_STEP = 0.05 m) then
+# gets a genuinely proportional response (cmd = 0.2, well under BASE_LIN); only
+# as the accumulated lead approaches the cap does the command approach
+# BASE_LIN/BASE_ANG, and action()'s clamp is a hard safety backstop rather than
+# the normal operating point. (The previous value of 10.0 made
+# KP * BASE_POS_STEP = 0.5 > BASE_LIN, so a SINGLE nudge already saturated the
+# clamp -- the gain had no effect on the shape of the response at all.)
+_BASE_KP_LIN = BASE_LIN / _BASE_LEAD_LIN_M     # 4.0
+_BASE_KP_ANG = BASE_ANG / _BASE_LEAD_YAW_RAD   # 4.0
 
 class WebTeleop(CartesianTeleop):
     """Type-safe DLS-IK (control_dict comes back numpy on this env -> cast to CPU torch).
@@ -63,16 +93,28 @@ class WebTeleop(CartesianTeleop):
     def nudge_base(self, dxy=None, dyaw=None):
         """dxy is in the robot's CURRENT local frame (forward/strafe), converted
         to a world-frame delta on the persisted absolute target; dyaw is added
-        directly to the persisted absolute target yaw."""
+        directly to the persisted absolute target yaw. Either way, the result is
+        then clamped so the target can never lead the base's CURRENT pose by more
+        than _BASE_LEAD_LIN_M / _BASE_LEAD_YAW_RAD -- see the constants above for
+        why an unclamped target lets the base outrun a released key."""
+        p, q = self.robot.get_position_orientation()
+        p_now = _T(p)[:2]
+        yaw_now = _yaw_of(_T(q).numpy())
         if dxy is not None:
-            _, q = self.robot.get_position_orientation()
-            yaw = _yaw_of(_T(q).numpy())
             dx, dy = dxy
-            c, s = math.cos(yaw), math.sin(yaw)
+            c, s = math.cos(yaw_now), math.sin(yaw_now)
             self.base_target_xy = self.base_target_xy + th.tensor(
                 [c * dx - s * dy, s * dx + c * dy], dtype=th.float32)
         if dyaw is not None:
             self.base_target_yaw = self.base_target_yaw + dyaw
+
+        lead = self.base_target_xy - p_now
+        lead_norm = float(th.linalg.norm(lead))
+        if lead_norm > _BASE_LEAD_LIN_M:
+            self.base_target_xy = p_now + lead * (_BASE_LEAD_LIN_M / lead_norm)
+        yaw_lead = (float(self.base_target_yaw) - yaw_now + math.pi) % (2 * math.pi) - math.pi
+        yaw_lead = max(-_BASE_LEAD_YAW_RAD, min(_BASE_LEAD_YAW_RAD, yaw_lead))
+        self.base_target_yaw = yaw_now + yaw_lead
 
     def action(self):
         robot = self.robot
@@ -294,13 +336,17 @@ if os.environ.get("JC_JOINTPROBE"):
             print("LIMITS %-26s lower=%s upper=%s" % (jn, j.lower_limit, j.upper_limit), flush=True)
         except Exception as e: print("LIMITS %s ERR %s" % (jn, e), flush=True)
     # command test: hold forward for 40 steps, watch base + dof velocities.
-    # Base control is now an absolute pose target (see WebTeleop.nudge_base), not
-    # a raw velocity command, so "hold forward" means push the target far enough
-    # ahead that the P-controller in action() saturates at +BASE_LIN for the
-    # whole probe window, mirroring the old constant 0.4 forward command.
+    # Base control is an absolute pose target (see WebTeleop.nudge_base), clamped
+    # to lead the actual base pose by at most _BASE_LEAD_LIN_M -- so, unlike a
+    # single huge nudge (which is now clamped down to that same small lead and
+    # would only saturate briefly), "hold forward" is simulated the way
+    # JC_DIAG_DRIVE does it below: nudge_base is called repeatedly to mimic the
+    # browser's 20 Hz key-repeat, which is what keeps the target's lead pinned at
+    # the cap -- and the command at +BASE_LIN -- for the whole probe window.
     p0 = arr(robot.get_position_orientation()[0])
-    teleop.nudge_base(dxy=(5.0, 0.0))
     for n in range(40):
+        if n % 2 == 0:
+            teleop.nudge_base(dxy=(BASE_POS_STEP, 0))
         env.step(teleop.action())
         if n % 10 == 0:
             jp = arr(robot.get_joint_positions()); jvv = arr(robot.get_joint_velocities())

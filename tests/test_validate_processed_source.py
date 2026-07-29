@@ -254,6 +254,50 @@ def test_mask_use_naming_absent_demo_rejected(tmp_path):
     assert any("demo_7" in x for x in problems)
 
 
+def test_mask_use_naming_a_non_demo_group_is_validated(tmp_path):
+    # The "demo" prefix is a convention, not a rule: file_utils.py:57 builds
+    # demo_keys straight out of mask/use, so a selected group named anything else is
+    # stepped by generation exactly like a demo_* one. Validating only names starting
+    # with "demo" checked this file's `traj_0` with nothing but `n in data`, so a
+    # datagen_info-less traj_0 alongside a good demo_0 reported VALID and then
+    # KeyError'd on the server — the false PASS this module exists to prevent.
+    p = tmp_path / "trajmask.hdf5"
+    _make_demo(p)
+    with h5py.File(p, "a") as f:
+        f["data"].create_group("traj_0").create_dataset(
+            "action", data=np.zeros((10, 11), dtype=np.float32))
+        del f["mask/use"]
+        f["mask"].create_dataset("use", data=np.array([b"demo_0", b"traj_0"]))
+    problems = validate_processed_source(str(p))
+    assert any("traj_0" in x and "datagen_info" in x for x in problems), problems
+
+
+def test_mask_use_selected_non_demo_group_may_be_valid(tmp_path):
+    # The flip side: a fully-formed selected group must NOT be rejected just for
+    # being named something other than demo_*, or the check above would be a
+    # name-prefix rule rather than a schema check.
+    p = tmp_path / "trajok.hdf5"
+    _make_demo(p)
+    with h5py.File(p, "a") as f:
+        f["data"].copy(f["data/demo_0"], "traj_0")
+        del f["mask/use"]
+        f["mask"].create_dataset("use", data=np.array([b"demo_0", b"traj_0"]))
+    assert validate_processed_source(str(p)) == []
+
+
+def test_mask_use_selecting_a_dataset_returns_problem_not_traceback(tmp_path):
+    # `"action" in g` on a Dataset falls through to iterating its rows and raises;
+    # this module promises to RETURN problems, never to raise.
+    p = tmp_path / "maskdataset.hdf5"
+    _make_demo(p)
+    with h5py.File(p, "a") as f:
+        f["data"].create_dataset("traj_0", data=np.zeros((10, 11), dtype=np.float32))
+        del f["mask/use"]
+        f["mask"].create_dataset("use", data=np.array([b"demo_0", b"traj_0"]))
+    problems = validate_processed_source(str(p))
+    assert any("traj_0" in x for x in problems), problems
+
+
 def test_object_poses_as_dataset_returns_problem_not_traceback(tmp_path):
     # object_poses must be a Group of per-object datasets. Stored as a Dataset it
     # used to raise TypeError ("Only 1D arrays allowed for fancy indexing") — this

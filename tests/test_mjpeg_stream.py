@@ -310,6 +310,74 @@ def test_encode_worker_only_encodes_the_newest_raw_frame():
         worker.join(timeout=2)
 
 
+class _PublishDuringSwapLock:
+    """A `threading.Lock` stand-in that publishes ONE extra raw frame the instant
+    `encode_worker` releases the lock it took to swap `_raw` out.
+
+    This is deliberately white-box (it replaces `FrameBuffer._lock`) because the
+    lost-wakeup window it targets -- between the swap and `_raw_ready.clear()` --
+    has no public seam, and a `sleep`-and-hope test for a race is worthless in CI.
+    Injecting at the lock's release point makes the interleaving EXACT: the extra
+    `publish_raw()` lands after the swap and, in the buggy ordering, immediately
+    before the `clear()` that erases its wakeup.
+
+    It fires only on a post-swap release (`_raw is None` on exit); `publish_raw()`
+    and `publish()` leave other state, so they cannot trigger it.
+    """
+
+    def __init__(self, frame_buffer, frame):
+        self._inner = threading.Lock()
+        self._fb = frame_buffer
+        self._frame = frame
+        self.fired = threading.Event()
+
+    def __enter__(self):
+        return self._inner.__enter__()
+
+    def __exit__(self, *exc):
+        result = self._inner.__exit__(*exc)
+        if not self.fired.is_set() and self._fb._raw is None:
+            self.fired.set()
+            # Released above, so this re-acquire cannot deadlock.
+            self._fb.publish_raw(self._frame)
+        return result
+
+
+def test_encode_worker_does_not_lose_a_frame_published_during_the_swap():
+    # Regression pin for a lost-wakeup freeze: `_raw_ready.clear()` used to run
+    # AFTER the swap, so a frame published in between erased its own wakeup. The
+    # worker then only timed out (it never re-reads `_raw` on the timeout path)
+    # and the MJPEG stream stayed stuck on a stale frame for as long as nothing
+    # else was published -- i.e. forever, once the sim loop stopped or paused.
+    fb = FrameBuffer()
+    encoded = []
+    second_encoded = threading.Event()
+
+    def encode(raw):
+        encoded.append(raw)
+        if raw == "second":
+            second_encoded.set()
+        return b"jpeg"
+
+    fb._lock = _PublishDuringSwapLock(fb, "second")
+    fb.publish_raw("first")
+
+    worker = threading.Thread(target=fb.encode_worker, args=(encode,), daemon=True)
+    worker.start()
+    try:
+        assert fb._lock.fired.wait(timeout=5), "the injected publish never ran"
+        # Bounded wait, so a regression fails fast instead of hanging the suite.
+        assert second_encoded.wait(timeout=5), (
+            "a frame published between the swap and _raw_ready.clear() was never "
+            "encoded -- clear() must happen BEFORE the swap (or the timeout path "
+            "must re-check _raw), otherwise the stream freezes on a stale frame"
+        )
+        assert encoded[:2] == ["first", "second"]
+    finally:
+        fb.stop()
+        worker.join(timeout=2)
+
+
 # ---------------------------------------------------------------------------
 # serve()/shutdown() lifecycle: port must be genuinely released, not just
 # "the thread is a daemon" (the Werkzeug stop()-that-silently-no-ops lesson).

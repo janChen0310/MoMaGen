@@ -206,6 +206,7 @@ def scan_problems(f, expected_versions=None):
     if "env_args" not in data.attrs:
         problems.append("data.attrs['env_args'] missing (generation needs it to build the env)")
 
+    selected = []
     if "mask" not in f or "use" not in f["mask"]:
         problems.append("missing mask/use (generation selects demos through it)")
     else:
@@ -220,6 +221,7 @@ def scan_problems(f, expected_versions=None):
             problems.append(
                 "mask/use is empty — generation would select zero demos and produce nothing")
         else:
+            selected = names
             dangling = [n for n in names if n not in data]
             if dangling:
                 problems.append(
@@ -233,8 +235,26 @@ def scan_problems(f, expected_versions=None):
     if not demos:
         problems.append("no demo_* groups found")
 
-    for demo in demos:
+    # Validate the UNION of the demo_* groups and whatever mask/use actually selects.
+    # The name prefix is a convention, not a rule: MG_FileUtils.get_demos_from_dataset
+    # builds demo_keys straight out of mask/use, so a selected group called anything
+    # else (e.g. `traj_0`) is stepped by generation exactly like a demo_* one. Checking
+    # only names starting with "demo" let such a group through with nothing but the
+    # `n in data` existence test above — a file with a good data/demo_0 and a
+    # datagen_info-less data/traj_0 selected by mask/use reported VALID here and then
+    # KeyError'd on the server, which is the false-PASS class this module exists to
+    # prevent. Sorted for a stable problem order.
+    checked = sorted(set(demos) | {n for n in selected if n in data})
+
+    for demo in checked:
         g = data[demo]
+        if not isinstance(g, h5py.Group):
+            # Everything below treats `g` as a group; on a Dataset `"action" in g`
+            # falls through to iteration over its rows and raises instead of
+            # returning a problem, which breaks this module's contract.
+            problems.append(
+                f"{demo}: expected a demo group, found a {type(g).__name__}")
+            continue
         if "action" not in g:
             problems.append(f"{demo}: missing 'action' (its length defines the trajectory)")
             continue

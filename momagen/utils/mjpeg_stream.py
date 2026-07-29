@@ -120,9 +120,18 @@ class FrameBuffer:
         while not self._stop.is_set():
             if not self._raw_ready.wait(timeout=poll_interval):
                 continue
+            # clear() BEFORE the swap, never after. `publish_raw()` writes `_raw`
+            # and only THEN sets the event, so a clear() placed after the swap can
+            # erase the wakeup belonging to a frame that is already sitting in
+            # `_raw` (published in the window between the swap and the clear).
+            # Nothing re-reads `_raw` on the timeout path, so that frame -- and
+            # every frame after it, once publishing stops -- is never encoded and
+            # the stream freezes on a stale frame. Clearing first cannot lose a
+            # frame: the worst case is a spurious wakeup whose swap yields None,
+            # handled by the `raw is None` guard below.
+            self._raw_ready.clear()
             with self._lock:
                 raw, self._raw = self._raw, None
-            self._raw_ready.clear()
             if raw is None:
                 continue
             self.publish(encode_fn(raw))
