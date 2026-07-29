@@ -420,3 +420,37 @@ def test_shutdown_is_safe_to_call_twice():
     server = serve(handler_cls, host="127.0.0.1", port=0)
     server.shutdown()
     server.shutdown()  # must not raise
+
+
+def test_encode_worker_survives_a_failing_encoder():
+    """A raising encode_fn must not kill the worker: the stream has to stay alive and
+    recover once encoding works again, rather than freezing forever."""
+    import threading
+    import time
+
+    from momagen.utils.mjpeg_stream import FrameBuffer
+
+    fb = FrameBuffer()
+    calls = {"n": 0}
+
+    def flaky_encode(raw):
+        calls["n"] += 1
+        if calls["n"] <= 2:
+            raise TypeError("function takes at most 16 arguments (17 given)")
+        return b"JPEGDATA"
+
+    t = threading.Thread(target=fb.encode_worker, args=(flaky_encode,), daemon=True)
+    t.start()
+    try:
+        deadline = time.time() + 5.0
+        while time.time() < deadline:
+            fb.publish_raw(b"rawframe")
+            fid, data = fb.latest()
+            if data == b"JPEGDATA":
+                break
+            time.sleep(0.02)
+        assert data == b"JPEGDATA", "worker died on the first encode failure"
+        assert t.is_alive(), "encode worker thread must survive an encoder exception"
+    finally:
+        fb.stop()
+        t.join(timeout=2)

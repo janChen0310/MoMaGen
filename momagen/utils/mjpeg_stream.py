@@ -91,6 +91,7 @@ class FrameBuffer:
         self._frame_id = 0
         self._jpeg = None
         self._stop = threading.Event()
+        self._encode_failed = False
 
     def publish_raw(self, frame):
         """Hand off a raw (unencoded) frame. Never blocks, never encodes."""
@@ -134,7 +135,17 @@ class FrameBuffer:
                 raw, self._raw = self._raw, None
             if raw is None:
                 continue
-            self.publish(encode_fn(raw))
+            try:
+                self.publish(encode_fn(raw))
+            except Exception as exc:
+                # A dead encode worker means the stream silently freezes forever with
+                # only a buried traceback -- far worse than dropping one frame. Log the
+                # first failure, then keep serving; a transient or per-frame encoder
+                # problem must not take the video down permanently.
+                if not self._encode_failed:
+                    self._encode_failed = True
+                    print("mjpeg_stream: encode failed (%s: %s); dropping frames, stream stays up"
+                          % (type(exc).__name__, exc), flush=True)
 
     def stop(self):
         """Ask a running `encode_worker` loop to exit. Safe to call any time."""

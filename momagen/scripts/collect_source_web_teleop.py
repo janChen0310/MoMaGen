@@ -11,14 +11,40 @@ os.environ["OMNIGIBSON_HEADLESS"] = "1"; os.environ["OMNI_KIT_ACCEPT_EULA"] = "Y
 # (Isaac Kit segfaults at boot in the XR viewport extension). Same fix as
 # collect_source_scripted_trash.py / collect_source_scripted_coffee.py.
 import numpy as np, torch as th
-try:
-    from PIL import Image
-    def enc(a):
-        b = io.BytesIO(); Image.fromarray(a).save(b, format="JPEG", quality=55); return b.getvalue()
-except Exception:
+def _select_encoder():
+    """Pick a JPEG encoder that actually works in THIS process.
+
+    Isaac Sim injects its own PIL via extscache, so `PIL.Image` can resolve to the conda
+    copy while the JPEG plugin resolves to Isaac's -- the mismatched C encoder then raises
+    `TypeError: function takes at most 16 arguments (17 given)` at save() time. Importing
+    PIL succeeds, so an import-time try/except never sees it. Probe with a real encode.
+    """
+    probe = np.zeros((8, 8, 3), dtype=np.uint8)
+    try:
+        from PIL import Image
+
+        def _pil(a):
+            b = io.BytesIO()
+            Image.fromarray(a).save(b, format="JPEG", quality=55)
+            return b.getvalue()
+
+        _pil(probe)
+        print("JPEG_ENCODER=pil", flush=True)
+        return _pil
+    except Exception as exc:
+        print("JPEG_ENCODER=pil_unusable (%s: %s) -> falling back to cv2" % (type(exc).__name__, exc), flush=True)
+
     import cv2
-    def enc(a):
+
+    def _cv2(a):
         return cv2.imencode(".jpg", a[:, :, ::-1], [cv2.IMWRITE_JPEG_QUALITY, 55])[1].tobytes()
+
+    _cv2(probe)
+    print("JPEG_ENCODER=cv2", flush=True)
+    return _cv2
+
+
+enc = _select_encoder()
 import omnigibson as og
 import omnigibson.utils.transform_utils as T
 from omnigibson.envs import DataCollectionWrapper
@@ -152,7 +178,12 @@ class WebTeleop(CartesianTeleop):
         action[robot.controller_action_idx["gripper_" + self.arm]] = -1.0 if self.gripper_closed else 1.0
         return action
 
-REPO = "/root/MoMaGen"
+# Box-portable: this collector was authored on the rivermind box (/root/MoMaGen) but also
+# runs on the shared 4090 box, whose tree lives elsewhere. Override with env vars rather
+# than editing paths per host.
+REPO = os.environ.get("MOMAGEN_REPO", "/root/MoMaGen")
+# Scratch dir for optional diagnostic stills/videos (not part of the recorded demo).
+DIAG_DIR = os.environ.get("MOMAGEN_DIAG_DIR", "/root/rivermind-data")
 TEMPLATE = REPO + "/momagen/datasets/source_og/r1_picking_up_trash.hdf5"
 OUTPUT = REPO + "/momagen/datasets/source_og/tidybot_picking_up_trash.hdf5"
 SCENE_INSTANCE = "house_single_floor_task_datagen_picking_up_trash_0_0_template"
@@ -290,7 +321,7 @@ if os.environ.get("JC_CLOSEUP"):
         d = ann.get_data()
         if d is not None:
             from PIL import Image as _Im
-            _Im.fromarray(np.array(d)[:, :, :3].astype(np.uint8)).save("/root/rivermind-data/closeup_%d.jpg" % i)
+            _Im.fromarray(np.array(d)[:, :, :3].astype(np.uint8)).save(os.path.join(DIAG_DIR, "closeup_%d.jpg" % i))
             print("CLOSEUP_SAVED %d az=%d" % (i, azd), flush=True)
     print("CLOSEUP_DONE", flush=True)
     og.shutdown(); raise SystemExit
@@ -385,7 +416,7 @@ if os.environ.get("JC_DIAG_DRIVE"):
                 print("DRV %-6s n=%03d base=[%.2f,%.2f] yaw=%.2f eef=[%.2f,%.2f,%.2f] maxjv=%.2f hits=%s" % (
                     phname, step_i, bp[0], bp[1], yw, eef[0], eef[1], eef[2], mv, hits), flush=True)
             step_i += 1
-    out = "/root/rivermind-data/trash_drive.mp4"
+    out = os.path.join(DIAG_DIR, "trash_drive.mp4")
     try:
         import imageio; imageio.mimsave(out, frames[::2], fps=15, macro_block_size=1)
     except Exception as ex:
@@ -409,13 +440,13 @@ if os.environ.get("JC_DIAG_VIDEO"):
                 frames.append(im[:, :, :3].astype(np.uint8))
         if n in (20, 60, 200):
             print("DIAG_HITS n=%d %s" % (n, sorted(_nonfloor_hits())[:8]), flush=True)
-    out = "/root/rivermind-data/trash_diag.mp4"
+    out = os.path.join(DIAG_DIR, "trash_diag.mp4")
     try:
         import imageio
         imageio.mimsave(out, frames[::2], fps=15, macro_block_size=1)
     except Exception as ex:
         print("mp4 failed (%s), writing gif" % ex, flush=True)
-        out = "/root/rivermind-data/trash_diag.gif"
+        out = os.path.join(DIAG_DIR, "trash_diag.gif")
         from PIL import Image as _Im
         _fr = [_Im.fromarray(f) for f in frames[::4]]
         _fr[0].save(out, save_all=True, append_images=_fr[1:], duration=120, loop=0)
@@ -449,7 +480,7 @@ while not teleop.done:
     if n in (40, 100, 180):
         _, _fbytes = frame_buffer.latest()
         if _fbytes:
-            open("/root/rivermind-data/trash_frame.jpg", "wb").write(_fbytes); print("SAVED_FRAME n=%d" % n, flush=True)
+            open(os.path.join(DIAG_DIR, "trash_frame.jpg"), "wb").write(_fbytes); print("SAVED_FRAME n=%d" % n, flush=True)
     if n in (20, 60):
         try:
             for c in robot.contact_list():
