@@ -4,11 +4,9 @@
 Loads the sampled house_single_floor datagen_picking_up_trash instance (soda can on a kitchen
 countertop, trash can on the floor). Drive: grasp the can, carry it to the trash can, drop it in, C=save.
 Renders offscreen, serves an MJPEG stream + 20Hz web keyboard input over HTTP."""
-import os, io, math, time, threading, collections
+import os, io, math, threading, collections
 os.environ["OMNIGIBSON_HEADLESS"] = "1"; os.environ["OMNI_KIT_ACCEPT_EULA"] = "YES"
 os.environ.setdefault("OMNIGIBSON_GPU_ID", "0")
-from urllib.parse import urlparse, parse_qs
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import numpy as np, torch as th
 try:
     from PIL import Image
@@ -24,14 +22,58 @@ from omnigibson.envs import DataCollectionWrapper
 from omnigibson.macros import gm
 from momagen.scripts.collect_tidybot_source_demo import (
     load_tidybot_env_config, CartesianTeleop, POS_STEP, ORI_STEP, BASE_LIN, BASE_ANG)
+from momagen.utils.mjpeg_stream import FrameBuffer, make_handler, serve
 
 def _T(x):
     if isinstance(x, th.Tensor):
         return x.detach().to("cpu", th.float32)
     return th.as_tensor(np.asarray(x), dtype=th.float32)
 
+def _yaw_of(quat):
+    x, y, z, w = quat
+    return math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
+
+# Base is driven as an ABSOLUTE POSE TARGET (world-frame xy + yaw), nudged by a
+# fixed step per processed key event -- not the old decaying rate command
+# (`base_cmd *= 0.9`). That mattered because "base" is a *velocity* controller
+# (HolonomicBaseJointController, motor_type="velocity"): a stale, un-decayed
+# velocity command integrates position error for as long as network lag delays
+# the next update (drift proportional to lag duration). A bounded per-event
+# nudge to an absolute target cannot do that -- a burst of late, queued key
+# events can only ever advance the target by (n_events * BASE_*_STEP), and the
+# base servos toward wherever the target currently sits and simply stops there,
+# regardless of how long it took the corresponding "stop" (i.e. no more nudges)
+# to become apparent.
+BASE_POS_STEP = 0.05   # m nudged onto the target per processed base key event
+BASE_YAW_STEP = 0.05   # rad nudged onto the target per processed base key event
+_BASE_KP_LIN = 10.0    # error(m) -> normalized cmd, clamped to +/-BASE_LIN below
+_BASE_KP_ANG = 10.0    # error(rad) -> normalized cmd, clamped to +/-BASE_ANG below
+
 class WebTeleop(CartesianTeleop):
-    """Type-safe DLS-IK (control_dict comes back numpy on this env -> cast to CPU torch)."""
+    """Type-safe DLS-IK (control_dict comes back numpy on this env -> cast to CPU torch).
+    Base control tracks an absolute world-frame pose target (see nudge_base/action)
+    rather than the base class's decaying rate command."""
+    def __init__(self, robot):
+        super().__init__(robot)
+        p, q = robot.get_position_orientation()
+        p = _T(p)
+        self.base_target_xy = p[:2].clone()
+        self.base_target_yaw = _yaw_of(_T(q).numpy())
+
+    def nudge_base(self, dxy=None, dyaw=None):
+        """dxy is in the robot's CURRENT local frame (forward/strafe), converted
+        to a world-frame delta on the persisted absolute target; dyaw is added
+        directly to the persisted absolute target yaw."""
+        if dxy is not None:
+            _, q = self.robot.get_position_orientation()
+            yaw = _yaw_of(_T(q).numpy())
+            dx, dy = dxy
+            c, s = math.cos(yaw), math.sin(yaw)
+            self.base_target_xy = self.base_target_xy + th.tensor(
+                [c * dx - s * dy, s * dx + c * dy], dtype=th.float32)
+        if dyaw is not None:
+            self.base_target_yaw = self.base_target_yaw + dyaw
+
     def action(self):
         robot = self.robot
         cd = robot.get_control_dict()
@@ -48,9 +90,24 @@ class WebTeleop(CartesianTeleop):
         target_q = q + th.clamp(dq, -0.05, 0.05)
         action = th.zeros(robot.action_dim)
         action[robot.controller_action_idx["arm_" + self.arm]] = _T(ac._reverse_preprocess_command(target_q))
-        action[robot.controller_action_idx["base"]] = _T(self.base_cmd)
+
+        # Base: clamped P-control toward the absolute pose target, recomputed
+        # fresh every step from the CURRENT tracking error (no persisted,
+        # decaying velocity state).
+        p_now, q_now = robot.get_position_orientation()
+        p_now = _T(p_now); yaw_now = _yaw_of(_T(q_now).numpy())
+        err_world = self.base_target_xy - p_now[:2]
+        c, s = math.cos(-yaw_now), math.sin(-yaw_now)  # world -> robot-local frame
+        err_local_x = c * float(err_world[0]) - s * float(err_world[1])
+        err_local_y = s * float(err_world[0]) + c * float(err_world[1])
+        err_yaw = (float(self.base_target_yaw) - yaw_now + math.pi) % (2 * math.pi) - math.pi
+        base_cmd = th.tensor([
+            max(-BASE_LIN, min(BASE_LIN, _BASE_KP_LIN * err_local_x)),
+            max(-BASE_LIN, min(BASE_LIN, _BASE_KP_LIN * err_local_y)),
+            max(-BASE_ANG, min(BASE_ANG, _BASE_KP_ANG * err_yaw)),
+        ], dtype=th.float32)
+        action[robot.controller_action_idx["base"]] = base_cmd
         action[robot.controller_action_idx["gripper_" + self.arm]] = -1.0 if self.gripper_closed else 1.0
-        self.base_cmd = self.base_cmd * 0.9
         return action
 
 REPO = "/root/MoMaGen"
@@ -117,14 +174,12 @@ stg = og.sim.stage
 cam = UsdGeom.Camera.Define(stg, "/World/jc_cam"); cam.GetFocalLengthAttr().Set(16.0)
 cam.GetHorizontalApertureAttr().Set(24.0); cam.GetClippingRangeAttr().Set((0.02, 200.0))
 camxf = UsdGeom.Xformable(cam.GetPrim()).AddTransformOp()
-def yaw_of(q):
-    x, y, z, w = q; return math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
 # orbit camera around the robot; user adjusts az/el/dist live (keys 1-6). az is relative
 # to the robot heading (0 = directly behind), so the view tracks the robot as it drives.
 cam_state = {"az": 0.0, "el": 73.0, "dist": 3.45, "h": 0.55}
 def set_cam():
     p, q = robot.get_position_orientation()
-    bp = arr(p); yaw = yaw_of(arr(q))
+    bp = arr(p); yaw = _yaw_of(arr(q))
     T = np.array([bp[0], bp[1], cam_state["h"]])
     azw = yaw + math.pi + math.radians(cam_state["az"])
     el = math.radians(max(8.0, min(86.0, cam_state["el"])))
@@ -138,13 +193,16 @@ set_cam()
 rp = rep.create.render_product("/World/jc_cam", (640, 384))
 ann = rep.AnnotatorRegistry.get_annotator("rgb"); ann.attach([rp])
 
-latest = [None]; fid = [0]; key_queue = collections.deque()
+key_queue = collections.deque()
+frame_buffer = FrameBuffer()
 def process_key(k):
-    k = k.lower(); B = BASE_LIN; A = BASE_ANG; P = POS_STEP; O = ORI_STEP
-    base = {'w': [B,0,0], 's': [-B,0,0], 'a': [0,B,0], 'd': [0,-B,0], 'q': [0,0,A], 'e': [0,0,-A]}
+    k = k.lower(); S = BASE_POS_STEP; Y = BASE_YAW_STEP; P = POS_STEP; O = ORI_STEP
+    base_xy = {'w': (S, 0), 's': (-S, 0), 'a': (0, S), 'd': (0, -S)}
+    base_yaw = {'q': Y, 'e': -Y}
     npos = {'i': [P,0,0], 'k': [-P,0,0], 'j': [0,P,0], 'l': [0,-P,0], 'u': [0,0,P], 'o': [0,0,-P]}
     nori = {'t': [0,O,0], 'g': [0,-O,0], 'f': [0,0,O], 'h': [0,0,-O], 'r': [O,0,0], 'y': [-O,0,0]}
-    if k in base: teleop.base_cmd = th.tensor([float(x) for x in base[k]])
+    if k in base_xy: teleop.nudge_base(dxy=base_xy[k])
+    elif k in base_yaw: teleop.nudge_base(dyaw=base_yaw[k])
     elif k in npos: teleop.nudge(dpos=npos[k])
     elif k in nori: teleop.nudge(dori=nori[k])
     elif k == '1': cam_state["az"] -= 7
@@ -171,27 +229,6 @@ document.addEventListener('keydown',function(e){var k=e.key.toLowerCase();
 document.addEventListener('keyup',function(e){delete held[e.key.toLowerCase()];});
 setInterval(function(){for(var k in held)fetch('/key?k='+k);},50);
 </script></body></html>"""
-class H(BaseHTTPRequestHandler):
-    def log_message(self, *a): pass
-    def do_GET(self):
-        if self.path.startswith("/key"):
-            k = parse_qs(urlparse(self.path).query).get("k", [""])[0]
-            if k: key_queue.append(k)
-            self.send_response(204); self.end_headers()
-        elif self.path == "/stream":
-            self.send_response(200); self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
-            self.send_header("Cache-Control", "no-store"); self.end_headers()
-            last = -1
-            try:
-                while True:
-                    if fid[0] != last and latest[0]:
-                        last = fid[0]
-                        self.wfile.write(b"--frame\r\nContent-Type: image/jpeg\r\n\r\n"); self.wfile.write(latest[0]); self.wfile.write(b"\r\n")
-                    else:
-                        time.sleep(0.004)
-            except Exception: pass
-        else:
-            self.send_response(200); self.send_header("Content-Type", "text/html"); self.end_headers(); self.wfile.write(HTML.encode())
 # --- close-up probe: eye-level stills of the arm vs the counter + raw link coordinates, then exit ---
 if os.environ.get("JC_CLOSEUP"):
     for _ in range(30): env.step(teleop.action())  # let controller settle the true teleop pose
@@ -256,10 +293,14 @@ if os.environ.get("JC_JOINTPROBE"):
             j = robot.joints[jn]
             print("LIMITS %-26s lower=%s upper=%s" % (jn, j.lower_limit, j.upper_limit), flush=True)
         except Exception as e: print("LIMITS %s ERR %s" % (jn, e), flush=True)
-    # command test: hold forward for 40 steps, watch base + dof velocities
+    # command test: hold forward for 40 steps, watch base + dof velocities.
+    # Base control is now an absolute pose target (see WebTeleop.nudge_base), not
+    # a raw velocity command, so "hold forward" means push the target far enough
+    # ahead that the P-controller in action() saturates at +BASE_LIN for the
+    # whole probe window, mirroring the old constant 0.4 forward command.
     p0 = arr(robot.get_position_orientation()[0])
+    teleop.nudge_base(dxy=(5.0, 0.0))
     for n in range(40):
-        teleop.base_cmd = th.tensor([0.4, 0.0, 0.0])
         env.step(teleop.action())
         if n % 10 == 0:
             jp = arr(robot.get_joint_positions()); jvv = arr(robot.get_joint_velocities())
@@ -335,8 +376,12 @@ if os.environ.get("JC_DIAG_VIDEO"):
     print("DIAG_VIDEO_SAVED %s frames=%d" % (out, len(frames)), flush=True)
     og.shutdown(); raise SystemExit
 
-srv = ThreadingHTTPServer(("0.0.0.0", PORT), H)
-threading.Thread(target=srv.serve_forever, daemon=True).start()
+handler_cls = make_handler(frame_buffer, key_queue.append, HTML)
+srv = serve(handler_cls, host="0.0.0.0", port=PORT)
+# Render (ann.get_data(), a GPU->CPU readback) still happens on the sim's
+# critical path below -- that's inherent to the renderer API -- but the JPEG
+# encode itself now runs on its own thread via encode_worker, off the sim loop.
+threading.Thread(target=frame_buffer.encode_worker, args=(enc,), daemon=True, name="mjpeg-encode").start()
 print("HTTP_SERVER_UP port %d" % PORT, flush=True)
 
 n = 0
@@ -351,10 +396,14 @@ while not teleop.done:
     if data is not None:
         im = np.array(data)
         if im.ndim == 3 and im.shape[-1] >= 3:
-            latest[0] = enc(im[:, :, :3].astype(np.uint8)); fid[0] += 1
-    if n == 4: print("FIRST_FRAMES_RENDERED bytes=%s" % (len(latest[0]) if latest[0] else 0), flush=True)
-    if n in (40, 100, 180) and latest[0]:
-        open("/root/rivermind-data/trash_frame.jpg", "wb").write(latest[0]); print("SAVED_FRAME n=%d" % n, flush=True)
+            frame_buffer.publish_raw(im[:, :, :3].astype(np.uint8))
+    if n == 4:
+        _, _fbytes = frame_buffer.latest()
+        print("FIRST_FRAMES_RENDERED bytes=%s" % (len(_fbytes) if _fbytes else 0), flush=True)
+    if n in (40, 100, 180):
+        _, _fbytes = frame_buffer.latest()
+        if _fbytes:
+            open("/root/rivermind-data/trash_frame.jpg", "wb").write(_fbytes); print("SAVED_FRAME n=%d" % n, flush=True)
     if n in (20, 60):
         try:
             for c in robot.contact_list():
@@ -375,4 +424,4 @@ with h5py.File(OUTPUT, "r+") as f:
     if "mask" not in f: f.create_group("mask")
     if "use" in f["mask"]: del f["mask"]["use"]
     f["mask"].create_dataset("use", data=np.array([d[-1].encode()]))
-print("SAVED %s" % OUTPUT, flush=True); srv.shutdown(); og.shutdown()
+print("SAVED %s" % OUTPUT, flush=True); frame_buffer.stop(); srv.shutdown(); og.shutdown()
