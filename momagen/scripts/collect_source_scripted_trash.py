@@ -7,13 +7,22 @@ kitchen counter, grasp the (0.5-scaled) can_of_soda_595, carry it to trash_can_5
 floor, drop it in. Records via DataCollectionWrapper (+ mask/use), logs the phase-boundary
 step indices needed for the MoMaGen base config, prints BDDL success, and writes an mp4.
 
+datagen_info (world-frame SE(3) geometry) is recorded INLINE, one entry per executed
+env.step, via DatagenInfoRecorder -- so the output of this script is directly
+generation-ready. prepare_src_dataset.py (the only OmniGibson-version-coupled stage) does
+NOT need to run afterward.
+
 NO base teleports (they corrupt the holonomic articulation): the base is DRIVEN with velocity
 commands along traversability-map waypoints. Grasp math reuses the proven tilted-approach
 recipe from momagen/scripts/script_tidybot_source_demo.py.
 """
-import math, os
+import json, math, os
 os.environ["OMNIGIBSON_HEADLESS"] = "1"; os.environ["OMNI_KIT_ACCEPT_EULA"] = "YES"
-os.environ.setdefault("OMNIGIBSON_GPU_ID", "0")
+# NB: do NOT set OMNIGIBSON_GPU_ID here -- on multi-GPU boxes the worker GPU is picked
+# with CUDA_VISIBLE_DEVICES alone; combining the two breaks Vulkan device enumeration
+# (Isaac Kit segfaults at boot in the XR viewport extension). Same fix as
+# collect_source_scripted_coffee.py; verified by reproducing the segfault on this
+# script before removing the setdefault(...) that used to be here.
 import h5py
 import numpy as np
 import torch as th
@@ -21,7 +30,12 @@ import omnigibson as og
 import omnigibson.utils.transform_utils as T
 from omnigibson.envs import DataCollectionWrapper
 from omnigibson.macros import gm
+from momagen.env_interfaces.base import make_interface
 from momagen.scripts.collect_tidybot_source_demo import load_tidybot_env_config
+from momagen.utils.datagen_info_recorder import DatagenInfoRecorder
+
+ENV_INTERFACE_NAME = "MG_TidyBotPickingUpTrash"
+ENV_INTERFACE_TYPE = "omnigibson_tidybot"
 
 REPO = "/root/MoMaGen"
 TEMPLATE = REPO + "/momagen/datasets/source_og/r1_picking_up_trash.hdf5"
@@ -76,6 +90,15 @@ env = DataCollectionWrapper(env=env, output_path=OUTPUT, only_successes=False)
 robot = env.robots[0]; arm = robot.default_arm
 env.reset()
 for _ in range(40): og.sim.step()
+
+# Built once, before the recorded episode starts (nothing above this point is an env.step
+# that DataCollectionWrapper records -- scene load, reset, and settling are raw og.sim.step()
+# calls). get_datagen_info() reads only live sim state, so it is safe to call every recorded
+# step; doing so here deletes prepare_src_dataset.py from the critical path (see
+# momagen/utils/datagen_info_recorder.py).
+recorder = DatagenInfoRecorder(
+    make_interface(name=ENV_INTERFACE_NAME, interface_type=ENV_INTERFACE_TYPE, env=env),
+    ENV_INTERFACE_NAME, ENV_INTERFACE_TYPE)
 
 can = env.scene.object_registry("name", CAN); trash = env.scene.object_registry("name", TRASH)
 # nudge the can to the counter's aisle-side edge (in reach of the standoff)
@@ -157,7 +180,9 @@ def compute_action(tp, tq, gripper_closed, base_cmd):
 
 def sim_step(tp, tq, gripper_closed, base_cmd):
     set_cam()
-    env.step(compute_action(tp, tq, gripper_closed, base_cmd))
+    action = compute_action(tp, tq, gripper_closed, base_cmd)
+    env.step(action)
+    recorder.record(action=action)  # paired 1:1 with the env.step DataCollectionWrapper just recorded
     step_count[0] += 1
     if step_count[0] % 2 == 0: grab()
 
@@ -293,11 +318,28 @@ log("BOUNDARIES: %s" % boundaries)
 log("TOTAL_STEPS=%d" % step_count[0])
 
 env.save_data()
+assert len(recorder) == step_count[0], (
+    "datagen_info count %d != recorded step count %d -- an env.step was not paired "
+    "with a recorder.record() call" % (len(recorder), step_count[0]))
+demo_key = recorder.write(OUTPUT)
+log("DATAGEN_INFO_WRITTEN %s entries=%d" % (demo_key, len(recorder)))
 with h5py.File(OUTPUT, "r+") as f:
     demos = sorted(f["data"].keys())
     if "mask" not in f: f.create_group("mask")
     if "use" in f["mask"]: del f["mask"]["use"]
     f["mask"].create_dataset("use", data=np.array([demos[-1].encode()]))
+    # DataCollectionWrapper writes data.attrs["config"] but generate_dataset reads
+    # data.attrs["env_args"] (robomimic env metadata, see momagen/utils/file_utils.py and
+    # robomimic/utils/env_utils.py); add it so this freshly collected + inline-annotated
+    # demo is generation-ready with NO prepare_src_dataset.py pass at all. Precedent:
+    # momagen/scripts/script_tidybot_source_demo_curobo.py does the same patch.
+    # env_kwargs == the OG config; env_name derived from the task's own activity_name so
+    # this stays correct if the template/task ever changes.
+    if "config" in f["data"].attrs and "env_args" not in f["data"].attrs:
+        cfg_d = json.loads(f["data"].attrs["config"])
+        activity_name = cfg_d.get("task", {}).get("activity_name", "datagen")
+        f["data"].attrs["env_args"] = json.dumps(
+            {"env_name": "%s_D0" % activity_name, "type": 4, "env_kwargs": cfg_d})
 log("SAVED %s tagged %s" % (OUTPUT, demos[-1]))
 if frames:
     import imageio

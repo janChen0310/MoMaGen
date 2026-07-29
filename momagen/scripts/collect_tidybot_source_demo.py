@@ -7,10 +7,14 @@ keyboard-teleoperated episode with OmniGibson's DataCollectionWrapper — which
 writes the same HDF5 layout as the R1 source demos
 (data attrs config/n_episodes/n_steps + data/demo_X/{action,state,state_size,...}).
 
-After collecting, annotate it exactly like an R1 source demo:
-    python momagen/scripts/prepare_src_dataset.py \
-        --dataset momagen/datasets/source_og/tidybot_pick_cup.hdf5 \
-        --env_interface MG_TidyBotPickCup --env_interface_type omnigibson_tidybot ...
+datagen_info (world-frame SE(3) geometry) is recorded INLINE, one entry per executed
+env.step, via DatagenInfoRecorder -- so the saved episode is directly generation-ready.
+prepare_src_dataset.py (the only OmniGibson-version-coupled stage) does NOT need to run
+afterward; pass --env_interface/--env_interface_type matching the template's task, e.g.:
+    python momagen/scripts/collect_tidybot_source_demo.py \
+        --template momagen/datasets/processed_source_demos/r1_pick_cup.hdf5 \
+        --output momagen/datasets/source_og/tidybot_pick_cup.hdf5 \
+        --env_interface MG_TidyBotPickCup --env_interface_type omnigibson_tidybot
 
 Teleop keys (tap to step; this is a minimal collection utility, not a polished
 teleop — telemoma/JoyLo can be substituted if preferred):
@@ -23,7 +27,13 @@ teleop — telemoma/JoyLo can be substituted if preferred):
 Usage (GUI required, run on the GPU machine):
     python momagen/scripts/collect_tidybot_source_demo.py \
         --template momagen/datasets/processed_source_demos/r1_pick_cup.hdf5 \
-        --output momagen/datasets/source_og/tidybot_pick_cup.hdf5
+        --output momagen/datasets/source_og/tidybot_pick_cup.hdf5 \
+        --env_interface MG_TidyBotPickCup --env_interface_type omnigibson_tidybot
+
+NOTE: this script is interactive (KeyboardEventHandler) and cannot be driven headlessly,
+so it is wired with the same DatagenInfoRecorder helper as the batch scripted collector
+(momagen/scripts/collect_source_scripted_trash.py) but is not runtime-verified end-to-end;
+that batch script is the verified proof path.
 """
 
 import argparse
@@ -41,6 +51,8 @@ from omnigibson.envs import DataCollectionWrapper
 from omnigibson.macros import gm
 from omnigibson.utils.ui_utils import KeyboardEventHandler
 
+from momagen.env_interfaces.base import make_interface
+from momagen.utils.datagen_info_recorder import DatagenInfoRecorder
 from momagen.utils.robot_config import get_tidybot_config
 
 POS_STEP = 0.02      # m per key tap
@@ -157,6 +169,11 @@ def main():
     parser.add_argument("--template", required=True,
                         help="existing R1 source hdf5 whose env config (scene/task) is reused")
     parser.add_argument("--output", required=True, help="output hdf5 path")
+    parser.add_argument("--env_interface", required=True,
+                        help="name of the MG_EnvInterface class matching this template's task, "
+                             "e.g. MG_TidyBotPickCup (see momagen/env_interfaces/omnigibson.py)")
+    parser.add_argument("--env_interface_type", default="omnigibson_tidybot",
+                        help="registered interface type for --env_interface")
     args = parser.parse_args()
 
     cfg = load_tidybot_env_config(args.template)
@@ -171,6 +188,15 @@ def main():
     for _ in range(10):
         og.sim.step()
 
+    # Built once, before teleop starts -- everything above is scene load/reset/settling via
+    # raw og.sim.step(), never recorded by DataCollectionWrapper. get_datagen_info() reads
+    # only live sim state, so it is safe to call every recorded step (see
+    # momagen/utils/datagen_info_recorder.py); this deletes prepare_src_dataset.py from the
+    # critical path.
+    recorder = DatagenInfoRecorder(
+        make_interface(name=args.env_interface, interface_type=args.env_interface_type, env=env),
+        args.env_interface, args.env_interface_type)
+
     teleop = CartesianTeleop(robot)
     KeyboardEventHandler.initialize()
     teleop.register_keys()
@@ -179,14 +205,23 @@ def main():
     print(f"Robot: {type(robot).__name__}, action_dim={robot.action_dim}")
     print("Teleop running. Press C to finish + save the episode.")
 
+    step_count = 0
     while not teleop.done:
-        env.step(teleop.action())
+        action = teleop.action()
+        env.step(action)
+        recorder.record(action=action)  # paired 1:1 with the env.step just recorded
+        step_count += 1
         success = env.task.success if hasattr(env.task, "success") else None
         if success:
             print("Task success detected! Press C to finish + save.")
 
     env.save_data()
-    print(f"Saved episode(s) to {args.output}")
+    assert len(recorder) == step_count, (
+        f"datagen_info count {len(recorder)} != recorded step count {step_count} -- an "
+        "env.step was not paired with a recorder.record() call")
+    demo_key = recorder.write(args.output)
+    print(f"Saved episode(s) to {args.output}; wrote datagen_info for {demo_key} "
+          f"({len(recorder)} entries)")
 
     # Add the robomimic-style filter key used by MoMaGen's source loader
     with h5py.File(args.output, "r+") as f:
@@ -195,6 +230,16 @@ def main():
             f.create_group("mask")
         if "use" not in f["mask"]:
             f["mask"].create_dataset("use", data=np.array([demos[-1].encode()]))
+        # DataCollectionWrapper writes data.attrs["config"] but generate_dataset reads
+        # data.attrs["env_args"] (robomimic env metadata); add it so this demo is
+        # generation-ready without a separate prepare_src_dataset.py pass. env_kwargs ==
+        # the OG config; env_name derived from the task's own activity_name. Precedent:
+        # momagen/scripts/script_tidybot_source_demo_curobo.py does the same patch.
+        if "config" in f["data"].attrs and "env_args" not in f["data"].attrs:
+            cfg_d = json.loads(f["data"].attrs["config"])
+            activity_name = cfg_d.get("task", {}).get("activity_name", "datagen")
+            f["data"].attrs["env_args"] = json.dumps(
+                {"env_name": f"{activity_name}_D0", "type": 4, "env_kwargs": cfg_d})
     print(f"Tagged {demos[-1]} as the 'use' source demo.")
 
     og.shutdown()
