@@ -36,7 +36,21 @@ class DatagenInfoRecorder:
         infos = self._infos
         with h5py.File(hdf5_path, "a") as f:
             data = f["data"]
-            key = demo_key or sorted(k for k in data if k.startswith("demo"))[0]
+            key = demo_key
+            if key is None:
+                demo_keys = sorted(k for k in data if k.startswith("demo"))
+                if not demo_keys:
+                    raise ValueError(
+                        f"no demo_* groups found under 'data' in {hdf5_path} — "
+                        "nothing to attach datagen_info to")
+                # The LAST demo, not the first: both collectors tag mask/use with
+                # sorted(...)[-1] after DataCollectionWrapper.save_data() (the most
+                # recently appended demo). Defaulting to the first would silently
+                # attach datagen_info to the wrong, older demo whenever the hdf5
+                # already has prior demos (overwrite=False, or a shared file) and the
+                # action lengths happen to coincide -- the length check below cannot
+                # catch that, since it validates length, not identity.
+                key = demo_keys[-1]
             grp = data[key]
 
             n_actions = grp["action"].shape[0]
