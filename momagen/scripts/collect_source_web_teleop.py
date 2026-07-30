@@ -89,7 +89,16 @@ BASE_YAW_STEP = 0.05   # rad nudged onto the target per processed base key event
 # and heading. Sized to _BASE_LEAD_S of travel at the clamped top speed
 # (BASE_LIN/BASE_ANG) -- a small, fixed lookahead the target can never exceed,
 # regardless of how many nudges land before the base's next step.
-_BASE_LEAD_S = 0.25
+# Tuned for TELEOP FEEL, not for a textbook proportional response. At 0.25 s the
+# derived gain is 4.0, i.e. tau = 1/KP = 0.25 s, so a tap settles over ~2-3 tau =
+# 0.5-0.75 s -- which is precisely the ~0.5 s lag an operator reports as "the robot
+# follows late". A teleoperator wants press-key-move-NOW, so a single tap SHOULD
+# saturate the velocity clamp; the earlier reasoning that treated saturation as a
+# defect optimised the wrong thing. 0.08 s gives KP = 12.5, so one 0.05 m nudge
+# commands 0.625 -> clamped to BASE_LIN (instant full speed), while the lead cap
+# shrinks to 0.032 m so post-release overrun is ~0.1 s instead of ~0.5 s. The
+# runaway protection the cap exists for is unchanged (it is still a hard cap).
+_BASE_LEAD_S = 0.08
 _BASE_LEAD_LIN_M = BASE_LIN * _BASE_LEAD_S     # 0.1 m
 _BASE_LEAD_YAW_RAD = BASE_ANG * _BASE_LEAD_S   # 0.1 rad
 
