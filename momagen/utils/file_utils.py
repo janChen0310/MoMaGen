@@ -302,7 +302,14 @@ def parse_source_dataset_bimanual(
         subtask_term_offset_ranges[-1] = (0, 0)
 
         subtask_indices = []
+        # Every demo's subtask windows start where this PHASE starts, not where the previous demo
+        # left off. Without this reset, `prev_subtask_term_ind` carried across the demo loop, so a
+        # second source demo parsed as [term, term] -- a zero-length window that trips
+        # "got empty subtasks!" in randomize_subtask_boundaries. The bug is invisible with a single
+        # source demo (the reset is then a no-op), which is why it survived until now.
+        phase_start_ind = prev_subtask_term_ind
         for ind in tqdm(range(len(demo_keys))):
+            prev_subtask_term_ind = phase_start_ind
 
             # parse subtask indices using subtask termination signals
             ep_subtask_indices = []
