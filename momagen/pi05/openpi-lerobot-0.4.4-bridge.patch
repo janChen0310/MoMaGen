@@ -1,0 +1,29 @@
+diff --git a/src/openpi/training/data_loader.py b/src/openpi/training/data_loader.py
+index e2ee7dd..a979d8a 100644
+--- a/src/openpi/training/data_loader.py
++++ b/src/openpi/training/data_loader.py
+@@ -7,7 +7,7 @@ from typing import Literal, Protocol, SupportsIndex, TypeVar
+ 
+ import jax
+ import jax.numpy as jnp
+-import lerobot.common.datasets.lerobot_dataset as lerobot_dataset
++import lerobot.datasets.lerobot_dataset as lerobot_dataset
+ import numpy as np
+ import torch
+ 
+@@ -146,7 +146,14 @@ def create_torch_dataset(
+     )
+ 
+     if data_config.prompt_from_task:
+-        dataset = TransformedDataset(dataset, [_transforms.PromptFromLeRobotTask(dataset_meta.tasks)])
++        # lerobot >= 0.4 returns meta.tasks as a DataFrame (index=task string,
++        # column task_index); PromptFromLeRobotTask expects dict[int, str]
++        _tasks_raw = dataset_meta.tasks
++        if hasattr(_tasks_raw, "iterrows"):
++            _tasks = {int(r["task_index"]): str(idx) for idx, r in _tasks_raw.iterrows()}
++        else:
++            _tasks = _tasks_raw
++        dataset = TransformedDataset(dataset, [_transforms.PromptFromLeRobotTask(_tasks)])
+ 
+     return dataset
+ 
