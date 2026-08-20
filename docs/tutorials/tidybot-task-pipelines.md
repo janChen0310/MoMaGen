@@ -225,8 +225,37 @@ goal → keep or discard.
 
 ## 4. Using the collected data
 
-Each demo is a self-contained hdf5 (one per file in the delivered
-`demos_60_split/`, `demos_fast_split/` layout; `data/demo_0` inside):
+**Delivery format: LeRobot (dataset codebase v3.0).** MoMaGen generates per-demo hdf5
+files internally (it needs them for `datagen_info` and re-anchored replay); the final
+delivery step converts them with `momagen/scripts/convert_to_lerobot.py`:
+
+```bash
+python momagen/scripts/convert_to_lerobot.py \
+  --inputs <hdf5_dir_or_files ...> --root <out_dir> \
+  --repo-id local/tidybot_picking_up_trash --task "Pick up the soda can ..." --fps 20
+```
+
+LeRobot features (TidyBot, 20 Hz):
+
+| Feature | Contents |
+|---|---|
+| `action` (11) | base velocity (vx, vy, ωz) + 7 arm joint targets + gripper |
+| `observation.state` (12) | base_qpos (x, y, yaw) + 7 arm joint pos + 2 gripper finger pos |
+| `observation.velocity` (12) | matching joint velocities |
+| `observation.eef_pose` (7) | eef position + quaternion (xyzw) |
+| `observation.images.wrist` | `arm_camera_link` rgb, 256×256, AV1 video |
+| `observation.images.base` | `base_camera_link` rgb, 256×256, AV1 video |
+
+Load with `LeRobotDataset("local/<name>", root=<out_dir>)`. The dispose-trash dataset
+(106 episodes: 60 normal + 46 fast, 84,391 frames, one task string) lives at
+`momagen/datasets/generated_datasets/tidybot_picking_up_trash_lerobot/` (232 MB).
+
+Depth, segmentation, per-step sim `states`, and `datagen_info` are not representable
+in the LeRobot feature set — the raw hdf5s on the generation server (and in the replay
+bundle) remain the archival copy of those, and `replay_demo.py` (exact sim replay)
+operates on the hdf5s, not the LeRobot dataset.
+
+The internal hdf5 layout (one file per demo, `data/demo_0` inside):
 
 | Field | Contents |
 |---|---|
