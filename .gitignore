@@ -13,3 +13,12 @@ temp/
 .vscode/
 generated_data/
 momagen/scripts/jc_probe_held_target.py
+.venv-test/
+.superpowers/
+
+# Rendered figures and analysis outputs. Reproducible from committed scripts:
+#   kineready/examples/rank_and_render.py, plot_reward_distribution.py
+#   momagen/scripts/analyze_kitchen_walkway.py
+# 49 MB of PNGs does not belong in a repo whose pack is already 30 GB.
+kineready/figures/
+/kitchen_walkway.png
