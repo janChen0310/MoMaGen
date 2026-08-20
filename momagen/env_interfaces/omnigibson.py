@@ -1019,6 +1019,23 @@ TASK_CONFIGS = {
         },
     ),
 
+    "tidybot_make_coffee": TaskConfig(
+        name="tidybot_make_coffee",
+        tracked_objects={
+            # datagen_make_coffee sampled in house_single_floor (kelker kitchen countertop).
+            # teacup_598 ("milk" vessel) = object_ref phase 1 / attached phase 2;
+            # toy_box_597 ("coffee" box) = object_ref phase 3 / attached phase 4;
+            # coffee_cup_599 (1.4x target cup) = object_ref phases 2+4. Tokens
+            # (sugar_cube_596, dice_595) move by physics only but are tracked so their
+            # poses land in datagen_info for debugging.
+            "teacup_598": "teacup_598",
+            "toy_box_597": "toy_box_597",
+            "coffee_cup_599": "coffee_cup_599",
+            "sugar_cube_596": "sugar_cube_596",
+            "dice_595": "dice_595",
+        },
+    ),
+
     # ------------------------------------------------------------------------------------------------
     # Add new task configs here
     # Note 1: tracked_objects is a dictionary with the same key and value. Furthermore, the tracked_object is the
@@ -1096,6 +1113,10 @@ class MG_TidyBotTidyTable(OmniGibsonInterfaceTidyBot):
 class MG_TidyBotPickingUpTrash(OmniGibsonInterfaceTidyBot):
     def __init__(self, env):
         super().__init__(env, TASK_CONFIGS["tidybot_picking_up_trash"])
+
+class MG_TidyBotMakeCoffee(OmniGibsonInterfaceTidyBot):
+    def __init__(self, env):
+        super().__init__(env, TASK_CONFIGS["tidybot_make_coffee"])
 
 
 

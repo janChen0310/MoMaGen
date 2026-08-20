@@ -186,3 +186,20 @@ class TidyBotPickingUpTrash(MG_Config):
         self.task.task_spec.phase1 = dict()
         # allow downstream code to completely replace the task spec from an external config
         self.task.task_spec.do_not_lock_keys()
+
+
+class TidyBotMakeCoffee(MG_Config):
+    """
+    datagen_make_coffee in house_single_floor with the single-arm TidyBot++ robot:
+    pour "milk" (white sugar cube) from a teacup and "coffee" (brown die) from an open
+    toy box into a wide (1.4x) coffee cup, all on the kelker kitchen countertop.
+    4 phases: grasp teacup -> pour over cup + set down -> grasp toy box -> pour + set
+    down. Bimanual task-spec format with a phantom right arm.
+    """
+    NAME = "tidybot_make_coffee"
+    TYPE = "omnigibson_bimanual"
+
+    def task_config(self):
+        self.task.task_spec.phase1 = dict()
+        # allow downstream code to completely replace the task spec from an external config
+        self.task.task_spec.do_not_lock_keys()

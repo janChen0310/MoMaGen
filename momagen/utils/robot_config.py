@@ -1,3 +1,4 @@
+import os
 """
 Robot configuration utilities for MoMaGen.
 """
@@ -191,7 +192,10 @@ def configure_tidybot_env_meta(env_meta):
     # which (a) freezes the gripper on a false grasp (breaks repeated open/close) and
     # (b) crashes for TidyBot (_find_gripper_raycast_collisions KeyError on the
     # phantom-arm "0" key). TidyBot is a real parallel-jaw gripper -> physical mode.
-    robot_kwargs["grasping_mode"] = "physical"
+    # JC: overridable -- the make-coffee pipeline records+replays with STICKY (the
+    # 30mm tokens sit below physical-pinch accuracy in replay; the source is sticky,
+    # and sticky does no raycasting so the assisted-mode TidyBot crash is moot).
+    robot_kwargs["grasping_mode"] = os.environ.get("JC_TIDYBOT_GRASP_MODE", "physical")
     # Force self-collisions OFF. Some R1 templates (e.g. picking_up_trash) carry
     # self_collisions=True; TidyBot's imported collision meshes overlap slightly between
     # adjacent links, so inheriting True makes the robot vibrate at rest (constant internal

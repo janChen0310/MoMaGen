@@ -542,6 +542,28 @@ def generate_dataset(
                         _dxy, float(_cp[2] - _tp[2])), flush=True)
             except Exception as _ex:
                 print("JCDROP err", _ex, flush=True)
+        # [JC_MC_DEBUG] make-coffee: log token-vs-cup geometry at trial end so pour
+        # failures can be classified (miss distance / still-in-vessel / off-counter).
+        if os.environ.get("JC_MC_DEBUG") == "1":
+            try:
+                import numpy as _np
+                _sc = env.env.scene
+                _cup = _sug = _die = None
+                for _o in _sc.objects:
+                    if _o.name.startswith("coffee_cup_"): _cup = _o
+                    elif _o.name.startswith("sugar_cube_"): _sug = _o
+                    elif _o.name.startswith("dice_"): _die = _o
+                if _cup is not None:
+                    _cp = _np.array(_cup.get_position_orientation()[0], float)
+                    for _nm, _t in (("sugar", _sug), ("die", _die)):
+                        if _t is None: continue
+                        _tp = _np.array(_t.get_position_orientation()[0], float)
+                        print("JCMC trial=%d success=%s %s=%s cup=%s dxy=%.3f dz=%.3f" % (
+                            num_attempts, success, _nm, _np.round(_tp, 3).tolist(),
+                            _np.round(_cp, 3).tolist(),
+                            float(_np.linalg.norm((_tp - _cp)[:2])), float(_tp[2] - _cp[2])), flush=True)
+            except Exception as _ex:
+                print("JCMC err", _ex, flush=True)
         print("trial {} success: {}".format(num_attempts, success))
         print("have {} successes out of {} trials so far".format(num_success, num_attempts))
         print("have {} failures out of {} trials so far".format(num_failures, num_attempts))
