@@ -1019,6 +1019,16 @@ TASK_CONFIGS = {
         },
     ),
 
+    "tidybot_grasp_can": TaskConfig(
+        name="tidybot_grasp_can",
+        tracked_objects={
+            # Navigate-and-grasp: the first half of tidybot_picking_up_trash with the drop
+            # removed. Only the can is tracked -- there is no drop target, so the trash can that
+            # still exists in the shared scene instance is just furniture here.
+            "can_of_soda_595": "can_of_soda_595",
+        },
+    ),
+
     "tidybot_make_coffee": TaskConfig(
         name="tidybot_make_coffee",
         tracked_objects={
@@ -1113,6 +1123,10 @@ class MG_TidyBotTidyTable(OmniGibsonInterfaceTidyBot):
 class MG_TidyBotPickingUpTrash(OmniGibsonInterfaceTidyBot):
     def __init__(self, env):
         super().__init__(env, TASK_CONFIGS["tidybot_picking_up_trash"])
+
+class MG_TidyBotGraspCan(OmniGibsonInterfaceTidyBot):
+    def __init__(self, env):
+        super().__init__(env, TASK_CONFIGS["tidybot_grasp_can"])
 
 class MG_TidyBotMakeCoffee(OmniGibsonInterfaceTidyBot):
     def __init__(self, env):

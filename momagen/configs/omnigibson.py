@@ -188,6 +188,26 @@ class TidyBotPickingUpTrash(MG_Config):
         self.task.task_spec.do_not_lock_keys()
 
 
+class TidyBotGraspCan(MG_Config):
+    """
+    Navigate-and-grasp in house_single_floor with the single-arm TidyBot++ robot: the
+    (0.5-scaled) can_of_soda_595 is randomized across the kitchen counter and the base
+    spawns out of arm reach on the walkway, so the robot must drive before it can grasp.
+
+    Deliberately the first half of tidybot_picking_up_trash with the drop removed -- one
+    phase, no attached object, no second navigation. It reuses that task's BDDL and scene
+    instance; success comes from a kinematic grasp+lift override in the env wrapper rather
+    than the (here unsatisfiable) BDDL goal. Bimanual task-spec format with a phantom right arm.
+    """
+    NAME = "tidybot_grasp_can"
+    TYPE = "omnigibson_bimanual"
+
+    def task_config(self):
+        self.task.task_spec.phase1 = dict()
+        # allow downstream code to completely replace the task spec from an external config
+        self.task.task_spec.do_not_lock_keys()
+
+
 class TidyBotMakeCoffee(MG_Config):
     """
     datagen_make_coffee in house_single_floor with the single-arm TidyBot++ robot:
