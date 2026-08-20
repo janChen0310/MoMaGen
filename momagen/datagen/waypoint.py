@@ -1375,7 +1375,7 @@ class WaypointTrajectory(object):
                 # 4. else, continue to base MP
 
             
-            num_tries = 3
+            num_tries = int(os.environ.get("JC_BASE_MP_TRIES", "3"))
             base_mp_trial = 0
             nav_mp_success = False
             while True:

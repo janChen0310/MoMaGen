@@ -1,6 +1,8 @@
 """
 Base class for data generator.
 """
+import os
+
 import numpy as np
 import torch as th
 
@@ -880,6 +882,24 @@ class DataGenerator(object):
                                 emb_sel=CuRoboEmbodimentSelection.ARM_NO_TORSO,
                             )
                             reachable_and_visible = retval is not None
+                            # [JC] Optional distance bound: IK-reachable-but-FAR targets replay
+                            # terribly (make-coffee pours executed from the single reset standoff
+                            # 0.5 m away sag into never-ejecting tilts). When the phase's eef
+                            # target is beyond the bound, force a navigation phase so the base
+                            # re-stations near the ref object (band via JC_BASE_SAMPLE_*),
+                            # mirroring the source demo's per-phase drives.
+                            _jc_maxd = os.environ.get("JC_REACH_MAX_DIST")
+                            if _jc_maxd and reachable_and_visible:
+                                try:
+                                    _tgt = eef_pose["left"][0]
+                                    _bxy = env.robot.get_position_orientation()[0][:2]
+                                    _d = float(th.norm(th.as_tensor(_tgt, dtype=th.float32)[:2]
+                                                       - th.as_tensor(_bxy, dtype=th.float32)))
+                                    if _d > float(_jc_maxd):
+                                        print(f"[JC_REACH_MAX_DIST] target {_d:.3f}m > {_jc_maxd} -> forcing navigation", flush=True)
+                                        reachable_and_visible = False
+                                except Exception as _ex:
+                                    print("[JC_REACH_MAX_DIST] err", _ex, flush=True)
                         print("object to be manipulated is reachable and visible: ", reachable_and_visible)
                         # ======================== End of reachibility and visibility check =========================
                 # If we are in the debugging mode of "manipulation_only" for pick_cup task, don't check reachability and visibility
