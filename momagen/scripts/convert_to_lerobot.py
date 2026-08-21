@@ -121,7 +121,12 @@ def main():
     for path in files:
         try:  # a shard killed mid-write leaves one truncated/corrupt hdf5 (bad object header)
             with h5py.File(path, "r") as f:
-                dks = sorted(f["data"].keys())
+                # Numeric, not lexicographic: plain sorted() gives demo_0, demo_1, demo_10,
+                # demo_11, ..., demo_2, so LeRobot episode 2 would be demo_10. The mapping has to
+                # stay obvious because replaying a trajectory needs the hdf5 demo, not the episode.
+                dks = sorted(f["data"].keys(),
+                             key=lambda k: (int(k.split("_")[-1])
+                                            if k.split("_")[-1].isdigit() else float("inf"), k))
         except Exception as e:
             bad_files.append(path)
             print(f"[skip-file] {os.path.basename(path)} unreadable: {e!r}", flush=True)
@@ -133,6 +138,7 @@ def main():
     print(f"converting {len(episodes)} episodes from {len(files)} files "
           f"(skipped {len(bad_files)} unreadable) -> {args.root}", flush=True)
 
+    saved_map = []   # only episodes that actually made it into the dataset
     for ei, (path, dk) in enumerate(episodes):
         try:
             with h5py.File(path, "r") as f:
@@ -170,10 +176,24 @@ def main():
                 "task": args.task,
             })
         ds.save_episode()
+        saved_map.append((path, dk, T))
         print(f"[{ei + 1}/{len(episodes)}] {os.path.basename(path)}:{dk} T={T} saved", flush=True)
 
     if hasattr(ds, "finalize"):
         ds.finalize()
+
+    # Write the episode -> (file, demo) map. Without it there is no way back from a LeRobot episode
+    # index to the hdf5 demo that replay_demo.py needs.
+    try:
+        import json as _json
+        with open(os.path.join(args.root, "episode_source_map.json"), "w") as _fh:
+            _json.dump({"episodes": [{"episode_index": i, "file": os.path.basename(p_),
+                                      "path": p_, "demo": d_, "frames": t_}
+                                     for i, (p_, d_, t_) in enumerate(saved_map)]},
+                       _fh, indent=1)
+        print("wrote episode_source_map.json", flush=True)
+    except Exception as _e:
+        print("could not write episode_source_map.json: %r" % (_e,), flush=True)
         print("finalized", flush=True)
     print("DONE episodes=%d frames=%d root=%s" % (ds.meta.total_episodes, ds.meta.total_frames, args.root), flush=True)
 
