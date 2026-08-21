@@ -139,12 +139,28 @@ def main():
           f"(skipped {len(bad_files)} unreadable) -> {args.root}", flush=True)
 
     saved_map = []   # only episodes that actually made it into the dataset
+    repaired_frames = [0]
     for ei, (path, dk) in enumerate(episodes):
         try:
             with h5py.File(path, "r") as f:
                 d = f["data"][dk]
                 obs = d["obs"]
                 actions = np.asarray(d["actions"], dtype=np.float32)
+                # Repair the gripper command. During the motion-planned segment MoMaGen only
+                # overwrites the gripper slot when an object is attached (waypoint.py ~1440), so
+                # while navigating it keeps whatever CuRobo's action generator left there -- in
+                # practice the constant 79, for roughly the first fifth of every episode.
+                # TidyBot's MultiFingerGripperController runs in "binary" mode, where a preprocessed
+                # value > 0 means max-open and anything else max-close, so 79 EXECUTED exactly like
+                # +1 and the demos are physically correct. Only the recorded number is wrong, and a
+                # policy trained on it would learn to emit 79 while driving and would have its
+                # normalisation statistics wrecked by the outlier. Taking the sign reproduces
+                # precisely what the simulator did.
+                gidx = actions.shape[1] - 1
+                n_bad = int(np.sum(np.abs(actions[:, gidx]) > 1.0 + 1e-6))
+                if n_bad:
+                    repaired_frames[0] += n_bad
+                actions[:, gidx] = np.where(actions[:, gidx] > 0, 1.0, -1.0).astype(np.float32)
                 state = np.concatenate([
                     np.asarray(obs["base_qvel"], dtype=np.float32),
                     np.asarray(obs["arm_0_qpos"], dtype=np.float32),
@@ -178,6 +194,10 @@ def main():
         ds.save_episode()
         saved_map.append((path, dk, T))
         print(f"[{ei + 1}/{len(episodes)}] {os.path.basename(path)}:{dk} T={T} saved", flush=True)
+
+    if repaired_frames[0]:
+        print("repaired out-of-range gripper commands on %d frames (binary mode: sign is what the "
+              "simulator acted on)" % repaired_frames[0], flush=True)
 
     if hasattr(ds, "finalize"):
         ds.finalize()
