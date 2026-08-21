@@ -57,6 +57,32 @@ def main():
 
     from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
+    # Probe the actual recorded frame size instead of hardcoding it. The trash run recorded
+    # 224x224; the grasp_can run records 256x256x4 (alpha included). Declaring 224 while writing
+    # 256 makes LeRobot store frames that disagree with their own feature spec, so read it from
+    # the data and drop only the alpha channel.
+    probe_files = episode_files(args.inputs)
+    if not probe_files:
+        raise SystemExit("no input hdf5 files matched %s" % (args.inputs,))
+    img_hw = None
+    for _p in probe_files:
+        try:
+            with h5py.File(_p, "r") as _f:
+                for _dk in _f["data"]:
+                    _obs = _f["data"][_dk]["obs"]
+                    _k = find_obs_key(_obs, "base_camera_link:Camera:0::rgb")
+                    img_hw = tuple(int(v) for v in _obs[_k].shape[1:3])
+                    break
+            if img_hw:
+                break
+        except Exception:
+            continue
+    if img_hw is None:
+        raise SystemExit("could not find a base_camera rgb stream in %s" % (probe_files[0],))
+    IMG_SHAPE = (img_hw[0], img_hw[1], 3)
+    print("recorded image size %dx%d -> feature shape %s" % (img_hw[0], img_hw[1], IMG_SHAPE),
+          flush=True)
+
     features = {
         "action": {"dtype": "float32", "shape": (11,), "names": [
             "base_vx", "base_vy", "base_wz",
@@ -75,9 +101,9 @@ def main():
             "gripper_dl", "gripper_dr"]},
         "observation.eef_pose": {"dtype": "float32", "shape": (7,), "names": [
             "x", "y", "z", "qx", "qy", "qz", "qw"]},
-        "observation.images.wrist": {"dtype": "video", "shape": (224, 224, 3),
+        "observation.images.wrist": {"dtype": "video", "shape": IMG_SHAPE,
                                      "names": ["height", "width", "channels"]},
-        "observation.images.base": {"dtype": "video", "shape": (224, 224, 3),
+        "observation.images.base": {"dtype": "video", "shape": IMG_SHAPE,
                                     "names": ["height", "width", "channels"]},
     }
 
@@ -87,7 +113,7 @@ def main():
         image_writer_threads=8,
     )
 
-    files = episode_files(args.inputs)
+    files = probe_files
     # Enumerate ALL demos in each hdf5: per-episode tmp files hold 1 demo each, but a
     # merged demo.hdf5 (from a shard that ran to completion) holds many (e.g. 40).
     episodes = []
