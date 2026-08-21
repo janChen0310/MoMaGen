@@ -10,9 +10,16 @@
 #                      on "Could not find a valid pose near the object". Across the viable cells the
 #                      nearest grasp station sits between 0.41 m and 0.86 m, median 0.53 -- so the
 #                      first 0.36-0.46 band reached only 27 of 105 cells and generated zero demos.
-#                      0.36-0.68, paired with JC_CAN_REQUIRE_SERVABLE (keep only cells whose nearest
-#                      station is <= 0.60 m, stamped by refine_can_region.py), keeps the can region
-#                      and the sampling band consistent with each other.
+#                      0.36-0.68 + JC_CAN_REQUIRE_SERVABLE made the two consistent and generation
+#                      worked. Then 140 trials showed a CLIFF at 0.54 m: 81% success at 0.42-0.48,
+#                      75% at 0.48-0.54, but 17% at 0.54-0.60 and 5% at 0.60-0.80 -- the
+#                      tilt-constrained QP executor stops tracking the replayed eef path. Because
+#                      trials past 0.54 m almost never succeed, the demos that DO land in the
+#                      dataset are already <= 0.54 m, so capping the band there costs no diversity
+#                      (57 servable cells vs 61) and simply stops burning ~100 s per hopeless trial;
+#                      an out-of-band can now fails base sampling in ~1.7 s instead.
+#                      Bearing matters too: |base bearing from the can| < 20 deg gives 72% success,
+#                      beyond +-60 deg it collapses -- see JC_BASE_SAMPLE_YAWC/YAWS if that bites.
 set -u
 GPU=$1; SEED=$2; NUM=${3:-20}; CORES=${4:-}
 NY=${MOMAGEN_REPO:-/home/ubuntu/DATA4/backup_root_home/yhu/MoMaGen}
@@ -24,10 +31,10 @@ export MOMAGEN_REPLAY_NUM_REPEAT=1
 export JC_WORLDCAM=1
 export MOMAGEN_REPO=$NY
 # ---------- task shape ----------
-export JC_CAN_REGION=$NY/can_region2.json
+export JC_CAN_REGION=$NY/can_region3.json
 export JC_CAN_REQUIRE_SERVABLE=1
 export JC_BASE_SAMPLE_LO=0.36
-export JC_BASE_SAMPLE_HI=0.68
+export JC_BASE_SAMPLE_HI=0.54
 # ---------- [JC PERF] speed levers (see momagen-generation-perf) ----------
 export JC_DS_RATIO=2            # 30Hz->15Hz replay downsample; halves the dominant replay phase
 export JC_MP_INTER_DIST=0.025   # coarser MP interpolation; ~2.5x fewer transit steps

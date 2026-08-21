@@ -1,0 +1,6365 @@
+{
+  "summary": {
+    "cells": 294,
+    "on_surface": 284,
+    "usable": 105,
+    "min_viable": 0.05,
+    "spacing": 0.08,
+    "near_band": [
+      0.3,
+      1.2
+    ],
+    "spawn_band": [
+      1.2,
+      2.5
+    ],
+    "usable_viable_mean": 0.1863174603174603,
+    "usable_viable_min": 0.05,
+    "usable_viable_max": 0.8366666666666667,
+    "spawn_directly_graspable_mean": 0.0,
+    "standoff_clearance": 0.34,
+    "max_standoff": 0.54,
+    "servable_cells": 59,
+    "usable_and_servable": 57
+  },
+  "rows": [
+    {
+      "xy": [
+        3.9081485271453857,
+        -2.1610231399536133
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 9206,
+        "free": 0.8166666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.3173,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081480503082275,
+        -2.0810227394104004
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 9805,
+        "free": 0.84,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.262,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081478118896484,
+        -2.001021146774292
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10385,
+        "free": 0.85,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.2095,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081478118896484,
+        -1.9210225343704224
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10949,
+        "free": 0.8433333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.1601,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081478118896484,
+        -1.84102201461792
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11495,
+        "free": 0.8733333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.1143,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.908147096633911,
+        -1.7610225677490234
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 30,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11998,
+        "free": 0.8633333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0725,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081482887268066,
+        -1.6810226440429688
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 94,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12452,
+        "free": 0.8833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0353,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.90814471244812,
+        -1.601022481918335
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 193,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12856,
+        "free": 0.8633333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.003,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.908146858215332,
+        -1.5210222005844116
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 314,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13226,
+        "free": 0.92,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9762,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.908146858215332,
+        -1.4410223960876465
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 454,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13563,
+        "free": 0.9066666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9554,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.908146619796753,
+        -1.361022710800171
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 609,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13872,
+        "free": 0.9033333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.941,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081475734710693,
+        -1.2810224294662476
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 773,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14160,
+        "free": 0.89,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9332,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081530570983887,
+        -1.201021671295166
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 941,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14428,
+        "free": 0.9033333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9318,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.908146619796753,
+        -1.1210227012634277
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1109,
+        "free": 0.99,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14683,
+        "free": 0.9033333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081475734710693,
+        -1.0410220623016357
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1277,
+        "free": 0.94,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14927,
+        "free": 0.8866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081485271453857,
+        -0.961022138595581
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1435,
+        "free": 0.9233333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15171,
+        "free": 0.89,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9038896560668945,
+        -0.8816861510276794
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1545,
+        "free": 0.8833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15421,
+        "free": 0.92,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9361,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9014055728912354,
+        -0.8000734448432922
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1648,
+        "free": 0.8,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15685,
+        "free": 0.94,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9386,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9012398719787598,
+        -0.720038890838623
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1749,
+        "free": 0.7566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15883,
+        "free": 0.9433333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9388,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.900942087173462,
+        -0.6363194584846497
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1825,
+        "free": 0.6166666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 16049,
+        "free": 0.9466666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9391,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.900674819946289,
+        -0.5544467568397522
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1867,
+        "free": 0.56,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 16208,
+        "free": 0.9666666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9393,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.900752305984497,
+        -0.47331997752189636
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1878,
+        "free": 0.5066666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 16329,
+        "free": 0.98,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9393,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.903593063354492,
+        -0.3980361223220825
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1917,
+        "free": 0.4,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 16341,
+        "free": 0.9633333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9364,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9028725624084473,
+        -0.31799909472465515
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1910,
+        "free": 0.3466666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 16293,
+        "free": 0.9966666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9371,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9076387882232666,
+        -0.2441103756427765
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1974,
+        "free": 0.3333333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 16155,
+        "free": 0.9866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9324,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.907644510269165,
+        -0.16472238302230835
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1969,
+        "free": 0.30333333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 16043,
+        "free": 0.9966666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9324,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081480503082275,
+        -0.08102217316627502
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.27,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15898,
+        "free": 0.9733333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081482887268066,
+        -0.0010224205907434225
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.31333333333333335,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15748,
+        "free": 0.9866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081478118896484,
+        0.07897766679525375
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.4066666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15582,
+        "free": 0.9833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081480503082275,
+        0.15897755324840546
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.45666666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15400,
+        "free": 0.97,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081485271453857,
+        0.2389775961637497
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.5333333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15202,
+        "free": 0.9566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081480503082275,
+        0.31897756457328796
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.6633333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14984,
+        "free": 0.94,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081480503082275,
+        0.39897745847702026
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.7233333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14748,
+        "free": 0.9133333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.908153533935547,
+        0.4789779782295227
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.8133333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14490,
+        "free": 0.9333333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9318,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081459045410156,
+        0.5589775443077087
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.8666666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14211,
+        "free": 0.94,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.908146619796753,
+        0.6389774680137634
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.94,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13906,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081485271453857,
+        0.7189778089523315
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.9566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13572,
+        "free": 0.9033333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.908146619796753,
+        0.7989773154258728
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1973,
+        "free": 0.99,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13209,
+        "free": 0.89,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9081482887268066,
+        0.87897789478302
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1959,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12823,
+        "free": 0.88,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.908146858215332,
+        0.958977460861206
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1907,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12436,
+        "free": 0.8566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9319,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.909590005874634,
+        1.0388187170028687
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1839,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12021,
+        "free": 0.8633333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9304,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9091153144836426,
+        1.118905782699585
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1723,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11588,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9309,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988187074661255,
+        -2.1610119342803955
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 9805,
+        "free": 0.84,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.2619,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881486892700195,
+        -2.081022024154663
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10404,
+        "free": 0.8533333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.2041,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881467819213867,
+        -2.0010221004486084
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10984,
+        "free": 0.8166666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.149,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881467819213867,
+        -1.9210222959518433
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 6,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11542,
+        "free": 0.8633333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0969,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147020339966,
+        -1.8410228490829468
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 56,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12039,
+        "free": 0.8333333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0483,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881482124328613,
+        -1.7610220909118652
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 153,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12474,
+        "free": 0.89,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0038,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881482124328613,
+        -1.6810226440429688
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 285,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12860,
+        "free": 0.88,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9639,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147020339966,
+        -1.6010222434997559
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 448,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13200,
+        "free": 0.9066666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9291,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147735595703,
+        -1.5210226774215698
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 633,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13506,
+        "free": 0.9033333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9002,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881467819213867,
+        -1.4410226345062256
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 837,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13779,
+        "free": 0.92,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8776,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147020339966,
+        -1.3610223531723022
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1056,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14024,
+        "free": 0.8766666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8619,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147735595703,
+        -1.281022548675537
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1284,
+        "free": 0.9966666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14248,
+        "free": 0.9,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8534,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147735595703,
+        -1.2010223865509033
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1516,
+        "free": 0.9866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14452,
+        "free": 0.8966666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881482124328613,
+        -1.1210222244262695
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1748,
+        "free": 0.95,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14643,
+        "free": 0.9166666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147258758545,
+        -1.0410221815109253
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1980,
+        "free": 0.9066666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14823,
+        "free": 0.9066666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147497177124,
+        -0.9610224366188049
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2202,
+        "free": 0.86,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15003,
+        "free": 0.9233333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.975970506668091,
+        -0.9153593182563782
+      ],
+      "on_surface": true,
+      "viable": 0.5866666666666667,
+      "near": {
+        "n": 2203,
+        "free": 0.8633333333333333,
+        "reach": 0.6166666666666667,
+        "viable": 0.5866666666666667
+      },
+      "spawn": {
+        "n": 15138,
+        "free": 0.93,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.864,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.986607313156128,
+        -0.8027653694152832
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2591,
+        "free": 0.7566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15351,
+        "free": 0.9633333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8534,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881248474121094,
+        -0.7210113406181335
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2778,
+        "free": 0.7166666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15474,
+        "free": 0.9466666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881248474121094,
+        -0.6410098075866699
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2924,
+        "free": 0.64,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15569,
+        "free": 0.9533333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881186485290527,
+        -0.5610172152519226
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3036,
+        "free": 0.61,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15632,
+        "free": 0.98,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988133668899536,
+        -0.48100167512893677
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3114,
+        "free": 0.5233333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15621,
+        "free": 0.9933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881367683410645,
+        -0.40099775791168213
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3147,
+        "free": 0.53,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15561,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881181716918945,
+        -0.3210170567035675
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3148,
+        "free": 0.52,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15469,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988121747970581,
+        -0.2409934550523758
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3148,
+        "free": 0.4633333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15363,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9865729808807373,
+        -0.15924072265625
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3132,
+        "free": 0.51,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15250,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8534,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147020339966,
+        -0.0810227021574974
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.51,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15105,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147735595703,
+        -0.001022476702928543
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.53,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14955,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147735595703,
+        0.0789775550365448
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.5233333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14789,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881467819213867,
+        0.1589774489402771
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.51,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14607,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881465435028076,
+        0.23897744715213776
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.5566666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14409,
+        "free": 0.9833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881467819213867,
+        0.3189774453639984
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.6466666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14191,
+        "free": 0.9733333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881479740142822,
+        0.39897748827934265
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.7266666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13955,
+        "free": 0.9666666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881467819213867,
+        0.478977233171463
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.79,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13697,
+        "free": 0.9433333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147497177124,
+        0.5589775443077087
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.8466666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13418,
+        "free": 0.93,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147020339966,
+        0.6389771699905396
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.94,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13113,
+        "free": 0.9166666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881443977355957,
+        0.7189770936965942
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3150,
+        "free": 0.9566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12779,
+        "free": 0.8966666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881479740142822,
+        0.7989775538444519
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3118,
+        "free": 0.96,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12448,
+        "free": 0.9,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881484508514404,
+        0.8789777755737305
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3041,
+        "free": 0.9966666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12125,
+        "free": 0.88,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881467819213867,
+        0.958977222442627
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2925,
+        "free": 0.9966666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11802,
+        "free": 0.8666666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.9881479740142822,
+        1.0389775037765503
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2777,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11457,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        3.988147735595703,
+        1.1189777851104736
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2602,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11080,
+        "free": 0.8833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8519,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148136138916,
+        -2.1610217094421387
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10385,
+        "free": 0.8466666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.2094,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068143844604492,
+        -2.081022262573242
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10984,
+        "free": 0.84,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.1489,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148612976074,
+        -2.001021385192871
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 10,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11554,
+        "free": 0.8733333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.091,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148612976074,
+        -1.9210219383239746
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 76,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12052,
+        "free": 0.87,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.036,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068145751953125,
+        -1.841022253036499
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 195,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12480,
+        "free": 0.88,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9844,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068145275115967,
+        -1.7610225677490234
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 357,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12850,
+        "free": 0.8566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9369,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148136138916,
+        -1.6810219287872314
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 553,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13172,
+        "free": 0.8566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.894,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068149089813232,
+        -1.6010220050811768
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 780,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13448,
+        "free": 0.89,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8564,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068149089813232,
+        -1.5210219621658325
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1029,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13690,
+        "free": 0.8866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8249,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068149089813232,
+        -1.4410219192504883
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1297,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13899,
+        "free": 0.89,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8002,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148612976074,
+        -1.361021876335144
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1580,
+        "free": 0.9966666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14080,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7829,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148612976074,
+        -1.281022071838379
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1872,
+        "free": 0.97,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14240,
+        "free": 0.8966666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7735,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068145751953125,
+        -1.2010226249694824
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2168,
+        "free": 0.9366666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14380,
+        "free": 0.87,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068149089813232,
+        -1.1210217475891113
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2464,
+        "free": 0.9366666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14507,
+        "free": 0.9,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068149089813232,
+        -1.0410219430923462
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 2760,
+        "free": 0.8966666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14623,
+        "free": 0.9133333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148136138916,
+        -0.9610223174095154
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3046,
+        "free": 0.8433333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14739,
+        "free": 0.9366666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068140697479248,
+        -0.8810178565978992
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.068123817443848,
+        -0.8010484576225281
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3578,
+        "free": 0.7333333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14955,
+        "free": 0.9566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068169593811035,
+        -0.7210366725921631
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3815,
+        "free": 0.7466666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15013,
+        "free": 0.9866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7718,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068118572235107,
+        -0.6410175561904907
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4024,
+        "free": 0.6933333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 15029,
+        "free": 0.9866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068118572235107,
+        -0.5610173940658569
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4200,
+        "free": 0.64,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14965,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068118095397949,
+        -0.4810171127319336
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4339,
+        "free": 0.6166666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14829,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068118572235107,
+        -0.40101704001426697
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4431,
+        "free": 0.65,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14662,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068118572235107,
+        -0.3210171163082123
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4475,
+        "free": 0.6233333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14526,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068121910095215,
+        -0.24099314212799072
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4476,
+        "free": 0.66,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14419,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068126678466797,
+        -0.16099658608436584
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4476,
+        "free": 0.6833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14299,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.0681471824646,
+        -0.08102241158485413
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4478,
+        "free": 0.65,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14161,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148612976074,
+        -0.0010223806602880359
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4478,
+        "free": 0.64,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 14011,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068145751953125,
+        0.07897745072841644
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4478,
+        "free": 0.6533333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13845,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148136138916,
+        0.15897777676582336
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4478,
+        "free": 0.6533333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13663,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148612976074,
+        0.23897752165794373
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4478,
+        "free": 0.6866666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13465,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148136138916,
+        0.3189775347709656
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4478,
+        "free": 0.7,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13247,
+        "free": 0.9933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068143844604492,
+        0.3989773690700531
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4478,
+        "free": 0.72,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13011,
+        "free": 0.9866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148136138916,
+        0.4789775609970093
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4478,
+        "free": 0.7833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12753,
+        "free": 0.96,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068512439727783,
+        0.531294584274292
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4483,
+        "free": 0.8133333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12567,
+        "free": 0.9566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7715,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068140697479248,
+        0.6389821434021021
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.068140697479248,
+        0.7189821434021022
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.068140697479248,
+        0.7989821434021023
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.068140697479248,
+        0.8789821434021023
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.072805404663086,
+        0.9592407941818237
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 4089,
+        "free": 0.9733333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11038,
+        "free": 0.87,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7672,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.067348003387451,
+        1.0616625547409058
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3733,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10734,
+        "free": 0.8633333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7727,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.068148136138916,
+        1.118977427482605
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 3566,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10498,
+        "free": 0.88,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7719,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.1481475830078125,
+        -2.161022901535034
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 0,
+        "free": 0.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10950,
+        "free": 0.8633333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.1599,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148148536682129,
+        -2.0810232162475586
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 6,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11543,
+        "free": 0.8733333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0968,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148144721984863,
+        -2.001021146774292
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 77,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12052,
+        "free": 0.8666666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0359,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148149490356445,
+        -1.9210214614868164
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 212,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12481,
+        "free": 0.8766666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9778,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148149013519287,
+        -1.8410217761993408
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 395,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12845,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.923,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.14814567565918,
+        -1.7610225677490234
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 621,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13151,
+        "free": 0.9,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8722,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148148059844971,
+        -1.6810225248336792
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 881,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13409,
+        "free": 0.8833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8259,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148149490356445,
+        -1.6010218858718872
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1172,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13621,
+        "free": 0.9133333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7851,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148143768310547,
+        -1.5210225582122803
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1485,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13798,
+        "free": 0.8966666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7506,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148148536682129,
+        -1.4410220384597778
+      ],
+      "on_surface": true,
+      "viable": 0.016666666666666666,
+      "near": {
+        "n": 1817,
+        "free": 1.0,
+        "reach": 0.016666666666666666,
+        "viable": 0.016666666666666666
+      },
+      "spawn": {
+        "n": 13941,
+        "free": 0.8766666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7233,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.14814567565918,
+        -1.3610225915908813
+      ],
+      "on_surface": true,
+      "viable": 0.023333333333333334,
+      "near": {
+        "n": 2164,
+        "free": 0.9766666666666667,
+        "reach": 0.023333333333333334,
+        "viable": 0.023333333333333334
+      },
+      "spawn": {
+        "n": 14056,
+        "free": 0.88,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7042,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148143291473389,
+        -1.2810224294662476
+      ],
+      "on_surface": true,
+      "viable": 0.05,
+      "near": {
+        "n": 2520,
+        "free": 0.95,
+        "reach": 0.05,
+        "viable": 0.05
+      },
+      "spawn": {
+        "n": 14152,
+        "free": 0.9333333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6937,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.1481475830078125,
+        -1.2010223865509033
+      ],
+      "on_surface": true,
+      "viable": 0.05,
+      "near": {
+        "n": 2880,
+        "free": 0.9233333333333333,
+        "reach": 0.05,
+        "viable": 0.05
+      },
+      "spawn": {
+        "n": 14228,
+        "free": 0.9266666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148149490356445,
+        -1.1210218667984009
+      ],
+      "on_surface": true,
+      "viable": 0.07,
+      "near": {
+        "n": 3240,
+        "free": 0.8866666666666667,
+        "reach": 0.07,
+        "viable": 0.07
+      },
+      "spawn": {
+        "n": 14291,
+        "free": 0.9,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148142337799072,
+        -1.0410223007202148
+      ],
+      "on_surface": true,
+      "viable": 0.08333333333333333,
+      "near": {
+        "n": 3600,
+        "free": 0.86,
+        "reach": 0.08333333333333333,
+        "viable": 0.08333333333333333
+      },
+      "spawn": {
+        "n": 14343,
+        "free": 0.94,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148146629333496,
+        -0.961022675037384
+      ],
+      "on_surface": true,
+      "viable": 0.10333333333333333,
+      "near": {
+        "n": 3950,
+        "free": 0.82,
+        "reach": 0.10333333333333333,
+        "viable": 0.10333333333333333
+      },
+      "spawn": {
+        "n": 14397,
+        "free": 0.9333333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.146963119506836,
+        -0.930080235004425
+      ],
+      "on_surface": true,
+      "viable": 0.6266666666666667,
+      "near": {
+        "n": 4075,
+        "free": 0.7633333333333333,
+        "reach": 0.7933333333333333,
+        "viable": 0.6266666666666667
+      },
+      "spawn": {
+        "n": 14415,
+        "free": 0.9633333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.693,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148121356964111,
+        -0.8010520339012146
+      ],
+      "on_surface": true,
+      "viable": 0.03666666666666667,
+      "near": {
+        "n": 4610,
+        "free": 0.7466666666666667,
+        "reach": 0.03666666666666667,
+        "viable": 0.03666666666666667
+      },
+      "spawn": {
+        "n": 14499,
+        "free": 0.9766666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148159503936768,
+        -0.7210559844970703
+      ],
+      "on_surface": true,
+      "viable": 0.056666666666666664,
+      "near": {
+        "n": 4911,
+        "free": 0.7233333333333334,
+        "reach": 0.056666666666666664,
+        "viable": 0.056666666666666664
+      },
+      "spawn": {
+        "n": 14485,
+        "free": 0.9866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6918,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.1481194496154785,
+        -0.6410173177719116
+      ],
+      "on_surface": true,
+      "viable": 0.05333333333333334,
+      "near": {
+        "n": 5184,
+        "free": 0.66,
+        "reach": 0.06,
+        "viable": 0.05333333333333334
+      },
+      "spawn": {
+        "n": 14378,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.14811372756958,
+        -0.561015784740448
+      ],
+      "on_surface": true,
+      "viable": 0.02666666666666667,
+      "near": {
+        "n": 5424,
+        "free": 0.7533333333333333,
+        "reach": 0.056666666666666664,
+        "viable": 0.02666666666666667
+      },
+      "spawn": {
+        "n": 14186,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.14811897277832,
+        -0.4810173809528351
+      ],
+      "on_surface": true,
+      "viable": 0.023333333333333334,
+      "near": {
+        "n": 5627,
+        "free": 0.7366666666666667,
+        "reach": 0.04,
+        "viable": 0.023333333333333334
+      },
+      "spawn": {
+        "n": 13930,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148118019104004,
+        -0.4010171592235565
+      ],
+      "on_surface": true,
+      "viable": 0.016666666666666666,
+      "near": {
+        "n": 5782,
+        "free": 0.7466666666666667,
+        "reach": 0.04,
+        "viable": 0.016666666666666666
+      },
+      "spawn": {
+        "n": 13695,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148117542266846,
+        -0.32101696729660034
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 5883,
+        "free": 0.7433333333333333,
+        "reach": 0.043333333333333335,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13502,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148120880126953,
+        -0.2409934550523758
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 5925,
+        "free": 0.76,
+        "reach": 0.04666666666666667,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13354,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148147106170654,
+        -0.16095666587352753
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 5925,
+        "free": 0.75,
+        "reach": 0.04,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13234,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.1481475830078125,
+        -0.08102241158485413
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 5927,
+        "free": 0.7666666666666667,
+        "reach": 0.07,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13096,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148148059844971,
+        -0.0010223962599411607
+      ],
+      "on_surface": true,
+      "viable": 0.0033333333333333335,
+      "near": {
+        "n": 5927,
+        "free": 0.7133333333333334,
+        "reach": 0.06666666666666667,
+        "viable": 0.0033333333333333335
+      },
+      "spawn": {
+        "n": 12946,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148148059844971,
+        0.07897759228944778
+      ],
+      "on_surface": true,
+      "viable": 0.01,
+      "near": {
+        "n": 5927,
+        "free": 0.7366666666666667,
+        "reach": 0.07333333333333333,
+        "viable": 0.01
+      },
+      "spawn": {
+        "n": 12780,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.1481475830078125,
+        0.15897756814956665
+      ],
+      "on_surface": true,
+      "viable": 0.03666666666666667,
+      "near": {
+        "n": 5927,
+        "free": 0.73,
+        "reach": 0.08,
+        "viable": 0.03666666666666667
+      },
+      "spawn": {
+        "n": 12598,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148144245147705,
+        0.23897749185562134
+      ],
+      "on_surface": true,
+      "viable": 0.056666666666666664,
+      "near": {
+        "n": 5927,
+        "free": 0.7733333333333333,
+        "reach": 0.07333333333333333,
+        "viable": 0.056666666666666664
+      },
+      "spawn": {
+        "n": 12400,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148148536682129,
+        0.3189775347709656
+      ],
+      "on_surface": true,
+      "viable": 0.06666666666666667,
+      "near": {
+        "n": 5927,
+        "free": 0.76,
+        "reach": 0.09,
+        "viable": 0.06666666666666667
+      },
+      "spawn": {
+        "n": 12182,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.1481475830078125,
+        0.3989776372909546
+      ],
+      "on_surface": true,
+      "viable": 0.06666666666666667,
+      "near": {
+        "n": 5927,
+        "free": 0.7766666666666666,
+        "reach": 0.06666666666666667,
+        "viable": 0.06666666666666667
+      },
+      "spawn": {
+        "n": 11946,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148144245147705,
+        0.4789773225784302
+      ],
+      "on_surface": true,
+      "viable": 0.05333333333333334,
+      "near": {
+        "n": 5927,
+        "free": 0.79,
+        "reach": 0.05333333333333334,
+        "viable": 0.05333333333333334
+      },
+      "spawn": {
+        "n": 11688,
+        "free": 0.99,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.147525310516357,
+        0.5326489210128784
+      ],
+      "on_surface": true,
+      "viable": 0.056666666666666664,
+      "near": {
+        "n": 5921,
+        "free": 0.82,
+        "reach": 0.056666666666666664,
+        "viable": 0.056666666666666664
+      },
+      "spawn": {
+        "n": 11505,
+        "free": 0.9633333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6925,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.147793292999268,
+        0.6387274861335754
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 5879,
+        "free": 0.88,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11150,
+        "free": 0.9533333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6922,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.149378299713135,
+        0.7220260500907898
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 5796,
+        "free": 0.86,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10896,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6906,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148204803466797,
+        0.7991282343864441
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 5618,
+        "free": 0.9266666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10716,
+        "free": 0.8833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6918,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.148237228393555,
+        0.8791146874427795
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 5414,
+        "free": 0.9533333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 10520,
+        "free": 0.86,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6918,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.141416072845459,
+        0.9496340751647949
+      ],
+      "on_surface": true,
+      "viable": 0.03333333333333333,
+      "near": {
+        "n": 5103,
+        "free": 0.9733333333333334,
+        "reach": 0.03333333333333333,
+        "viable": 0.03333333333333333
+      },
+      "spawn": {
+        "n": 10410,
+        "free": 0.8666666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6986,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.165385723114014,
+        1.0726168155670166
+      ],
+      "on_surface": true,
+      "viable": 0.6566666666666666,
+      "near": {
+        "n": 5007,
+        "free": 0.99,
+        "reach": 0.6566666666666666,
+        "viable": 0.6566666666666666
+      },
+      "spawn": {
+        "n": 9851,
+        "free": 0.8633333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6746,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.1481428146362305,
+        1.118977665901184
+      ],
+      "on_surface": true,
+      "viable": 0.1,
+      "near": {
+        "n": 4591,
+        "free": 1.0,
+        "reach": 0.1,
+        "viable": 0.1
+      },
+      "spawn": {
+        "n": 9857,
+        "free": 0.86,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6919,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228142738342285,
+        -2.161022424697876
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11494,
+        "free": 0.88,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.1141,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228143215179443,
+        -2.081022262573242
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 59,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12035,
+        "free": 0.87,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0481,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.22814416885376,
+        -2.0010218620300293
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 199,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12475,
+        "free": 0.9,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9843,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228148460388184,
+        -1.9210219383239746
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 398,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12840,
+        "free": 0.8466666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.923,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228145599365234,
+        -1.8410224914550781
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 645,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13137,
+        "free": 0.9033333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8647,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228146553039551,
+        -1.7610222101211548
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 935,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13375,
+        "free": 0.88,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8102,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228148937225342,
+        -1.6810219287872314
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1259,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13565,
+        "free": 0.9133333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7601,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228145599365234,
+        -1.6010223627090454
+      ],
+      "on_surface": true,
+      "viable": 0.01,
+      "near": {
+        "n": 1614,
+        "free": 1.0,
+        "reach": 0.01,
+        "viable": 0.01
+      },
+      "spawn": {
+        "n": 13709,
+        "free": 0.8766666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7156,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228148460388184,
+        -1.5210224390029907
+      ],
+      "on_surface": true,
+      "viable": 0.02666666666666667,
+      "near": {
+        "n": 1991,
+        "free": 1.0,
+        "reach": 0.02666666666666667,
+        "viable": 0.02666666666666667
+      },
+      "spawn": {
+        "n": 13821,
+        "free": 0.8766666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6775,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228148937225342,
+        -1.4410219192504883
+      ],
+      "on_surface": true,
+      "viable": 0.06,
+      "near": {
+        "n": 2387,
+        "free": 0.9866666666666667,
+        "reach": 0.06,
+        "viable": 0.06
+      },
+      "spawn": {
+        "n": 13900,
+        "free": 0.9166666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6472,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228149890899658,
+        -1.361021637916565
+      ],
+      "on_surface": true,
+      "viable": 0.05,
+      "near": {
+        "n": 2798,
+        "free": 0.9466666666666667,
+        "reach": 0.05,
+        "viable": 0.05
+      },
+      "spawn": {
+        "n": 13951,
+        "free": 0.9166666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6257,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228145122528076,
+        -1.2810226678848267
+      ],
+      "on_surface": true,
+      "viable": 0.14333333333333334,
+      "near": {
+        "n": 3218,
+        "free": 0.9366666666666666,
+        "reach": 0.14333333333333334,
+        "viable": 0.14333333333333334
+      },
+      "spawn": {
+        "n": 13983,
+        "free": 0.91,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.614,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228147983551025,
+        -1.201022744178772
+      ],
+      "on_surface": true,
+      "viable": 0.13666666666666666,
+      "near": {
+        "n": 3642,
+        "free": 0.8933333333333333,
+        "reach": 0.13666666666666666,
+        "viable": 0.13666666666666666
+      },
+      "spawn": {
+        "n": 13995,
+        "free": 0.93,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228149890899658,
+        -1.1210218667984009
+      ],
+      "on_surface": true,
+      "viable": 0.11666666666666667,
+      "near": {
+        "n": 4066,
+        "free": 0.8833333333333333,
+        "reach": 0.11666666666666667,
+        "viable": 0.11666666666666667
+      },
+      "spawn": {
+        "n": 13994,
+        "free": 0.9233333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228148937225342,
+        -1.0410220623016357
+      ],
+      "on_surface": true,
+      "viable": 0.16666666666666666,
+      "near": {
+        "n": 4490,
+        "free": 0.8633333333333333,
+        "reach": 0.16666666666666666,
+        "viable": 0.16666666666666666
+      },
+      "spawn": {
+        "n": 13982,
+        "free": 0.96,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228147983551025,
+        -0.9610223770141602
+      ],
+      "on_surface": true,
+      "viable": 0.19333333333333333,
+      "near": {
+        "n": 4900,
+        "free": 0.78,
+        "reach": 0.19666666666666666,
+        "viable": 0.19333333333333333
+      },
+      "spawn": {
+        "n": 13976,
+        "free": 0.9433333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.219842910766602,
+        -0.922691285610199
+      ],
+      "on_surface": true,
+      "viable": 0.6666666666666666,
+      "near": {
+        "n": 4991,
+        "free": 0.74,
+        "reach": 0.8933333333333333,
+        "viable": 0.6666666666666666
+      },
+      "spawn": {
+        "n": 14024,
+        "free": 0.95,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6202,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228146076202393,
+        -0.8010896444320679
+      ],
+      "on_surface": true,
+      "viable": 0.15,
+      "near": {
+        "n": 5642,
+        "free": 0.7833333333333333,
+        "reach": 0.16333333333333333,
+        "viable": 0.15
+      },
+      "spawn": {
+        "n": 14025,
+        "free": 0.9966666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228119850158691,
+        -0.7210507392883301
+      ],
+      "on_surface": true,
+      "viable": 0.13,
+      "near": {
+        "n": 5973,
+        "free": 0.7666666666666667,
+        "reach": 0.14,
+        "viable": 0.13
+      },
+      "spawn": {
+        "n": 13936,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228113651275635,
+        -0.6410161256790161
+      ],
+      "on_surface": true,
+      "viable": 0.08333333333333333,
+      "near": {
+        "n": 6279,
+        "free": 0.78,
+        "reach": 0.11666666666666667,
+        "viable": 0.08333333333333333
+      },
+      "spawn": {
+        "n": 13735,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228109836578369,
+        -0.5610157251358032
+      ],
+      "on_surface": true,
+      "viable": 0.07333333333333333,
+      "near": {
+        "n": 6551,
+        "free": 0.75,
+        "reach": 0.12666666666666668,
+        "viable": 0.07333333333333333
+      },
+      "spawn": {
+        "n": 13451,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228118896484375,
+        -0.48101723194122314
+      ],
+      "on_surface": true,
+      "viable": 0.07333333333333333,
+      "near": {
+        "n": 6796,
+        "free": 0.8233333333333334,
+        "reach": 0.13,
+        "viable": 0.07333333333333333
+      },
+      "spawn": {
+        "n": 13143,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228116512298584,
+        -0.40101727843284607
+      ],
+      "on_surface": true,
+      "viable": 0.03666666666666667,
+      "near": {
+        "n": 7004,
+        "free": 0.83,
+        "reach": 0.08666666666666667,
+        "viable": 0.03666666666666667
+      },
+      "spawn": {
+        "n": 12857,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228072643280029,
+        -0.3211583197116852
+      ],
+      "on_surface": true,
+      "viable": 0.01,
+      "near": {
+        "n": 7169,
+        "free": 0.81,
+        "reach": 0.10666666666666667,
+        "viable": 0.01
+      },
+      "spawn": {
+        "n": 12600,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228008270263672,
+        -0.24109944701194763
+      ],
+      "on_surface": true,
+      "viable": 0.023333333333333334,
+      "near": {
+        "n": 7266,
+        "free": 0.7933333333333333,
+        "reach": 0.12333333333333334,
+        "viable": 0.023333333333333334
+      },
+      "spawn": {
+        "n": 12397,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.612,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228131294250488,
+        -0.16095894575119019
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 7296,
+        "free": 0.77,
+        "reach": 0.12666666666666668,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12247,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228148460388184,
+        -0.08102240413427353
+      ],
+      "on_surface": true,
+      "viable": 0.016666666666666666,
+      "near": {
+        "n": 7297,
+        "free": 0.7933333333333333,
+        "reach": 0.16,
+        "viable": 0.016666666666666666
+      },
+      "spawn": {
+        "n": 12110,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228146076202393,
+        -0.0010224858997389674
+      ],
+      "on_surface": true,
+      "viable": 0.02666666666666667,
+      "near": {
+        "n": 7297,
+        "free": 0.7866666666666666,
+        "reach": 0.13,
+        "viable": 0.02666666666666667
+      },
+      "spawn": {
+        "n": 11960,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228142738342285,
+        0.07897745817899704
+      ],
+      "on_surface": true,
+      "viable": 0.06666666666666667,
+      "near": {
+        "n": 7297,
+        "free": 0.8,
+        "reach": 0.18333333333333332,
+        "viable": 0.06666666666666667
+      },
+      "spawn": {
+        "n": 11794,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.2281494140625,
+        0.15897785127162933
+      ],
+      "on_surface": true,
+      "viable": 0.06666666666666667,
+      "near": {
+        "n": 7297,
+        "free": 0.8,
+        "reach": 0.13666666666666666,
+        "viable": 0.06666666666666667
+      },
+      "spawn": {
+        "n": 11612,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228147983551025,
+        0.23897746205329895
+      ],
+      "on_surface": true,
+      "viable": 0.09,
+      "near": {
+        "n": 7297,
+        "free": 0.8,
+        "reach": 0.14666666666666667,
+        "viable": 0.09
+      },
+      "spawn": {
+        "n": 11414,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228145599365234,
+        0.31897732615470886
+      ],
+      "on_surface": true,
+      "viable": 0.11,
+      "near": {
+        "n": 7297,
+        "free": 0.79,
+        "reach": 0.16666666666666666,
+        "viable": 0.11
+      },
+      "spawn": {
+        "n": 11196,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228142738342285,
+        0.3989773988723755
+      ],
+      "on_surface": true,
+      "viable": 0.07666666666666666,
+      "near": {
+        "n": 7297,
+        "free": 0.74,
+        "reach": 0.09666666666666666,
+        "viable": 0.07666666666666666
+      },
+      "spawn": {
+        "n": 10960,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228145599365234,
+        0.4789774715900421
+      ],
+      "on_surface": true,
+      "viable": 0.15333333333333332,
+      "near": {
+        "n": 7297,
+        "free": 0.8033333333333333,
+        "reach": 0.16333333333333333,
+        "viable": 0.15333333333333332
+      },
+      "spawn": {
+        "n": 10702,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.227515697479248,
+        0.5326125025749207
+      ],
+      "on_surface": true,
+      "viable": 0.10666666666666667,
+      "near": {
+        "n": 7285,
+        "free": 0.8166666666666667,
+        "reach": 0.11333333333333333,
+        "viable": 0.10666666666666667
+      },
+      "spawn": {
+        "n": 10525,
+        "free": 0.9933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6125,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.22830867767334,
+        0.6382483839988708
+      ],
+      "on_surface": true,
+      "viable": 0.04666666666666667,
+      "near": {
+        "n": 7170,
+        "free": 0.8666666666666667,
+        "reach": 0.04666666666666667,
+        "viable": 0.04666666666666667
+      },
+      "spawn": {
+        "n": 10248,
+        "free": 0.9533333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6117,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228289604187012,
+        0.7190567851066589
+      ],
+      "on_surface": true,
+      "viable": 0.08,
+      "near": {
+        "n": 6995,
+        "free": 0.8733333333333333,
+        "reach": 0.08,
+        "viable": 0.08
+      },
+      "spawn": {
+        "n": 10087,
+        "free": 0.9433333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6117,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.2283034324646,
+        0.7990487217903137
+      ],
+      "on_surface": true,
+      "viable": 0.056666666666666664,
+      "near": {
+        "n": 6772,
+        "free": 0.8966666666666666,
+        "reach": 0.056666666666666664,
+        "viable": 0.056666666666666664
+      },
+      "spawn": {
+        "n": 9947,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6117,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228295803070068,
+        0.8790522217750549
+      ],
+      "on_surface": true,
+      "viable": 0.05,
+      "near": {
+        "n": 6503,
+        "free": 0.94,
+        "reach": 0.05,
+        "viable": 0.05
+      },
+      "spawn": {
+        "n": 9816,
+        "free": 0.9266666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6117,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.220089435577393,
+        0.9567963480949402
+      ],
+      "on_surface": true,
+      "viable": 0.02666666666666667,
+      "near": {
+        "n": 6127,
+        "free": 0.9733333333333334,
+        "reach": 0.02666666666666667,
+        "viable": 0.02666666666666667
+      },
+      "spawn": {
+        "n": 9721,
+        "free": 0.85,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6199,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.227351665496826,
+        1.0616625547409058
+      ],
+      "on_surface": true,
+      "viable": 0.20666666666666667,
+      "near": {
+        "n": 5765,
+        "free": 0.98,
+        "reach": 0.20666666666666667,
+        "viable": 0.20666666666666667
+      },
+      "spawn": {
+        "n": 9470,
+        "free": 0.8466666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6127,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.228146076202393,
+        1.1189770698547363
+      ],
+      "on_surface": true,
+      "viable": 0.15666666666666668,
+      "near": {
+        "n": 5522,
+        "free": 0.9966666666666667,
+        "reach": 0.15666666666666668,
+        "viable": 0.15666666666666668
+      },
+      "spawn": {
+        "n": 9310,
+        "free": 0.82,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6119,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.308145999908447,
+        -2.1610217094421387
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 30,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 11996,
+        "free": 0.8666666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0722,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.308148384094238,
+        -2.0810232162475586
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 160,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12461,
+        "free": 0.8833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0035,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.30814266204834,
+        -2.0010223388671875
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 364,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12832,
+        "free": 0.8566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9367,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.3081488609313965,
+        -1.9210219383239746
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 627,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13127,
+        "free": 0.8733333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.872,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.3081488609313965,
+        -1.8410218954086304
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 938,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13359,
+        "free": 0.8733333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8101,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.308149814605713,
+        -1.7610217332839966
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1292,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13533,
+        "free": 0.8833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7516,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.3081488609313965,
+        -1.6810219287872314
+      ],
+      "on_surface": true,
+      "viable": 0.01,
+      "near": {
+        "n": 1680,
+        "free": 1.0,
+        "reach": 0.01,
+        "viable": 0.01
+      },
+      "spawn": {
+        "n": 13659,
+        "free": 0.9033333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6973,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.308145999908447,
+        -1.6010222434997559
+      ],
+      "on_surface": true,
+      "viable": 0.056666666666666664,
+      "near": {
+        "n": 2099,
+        "free": 1.0,
+        "reach": 0.056666666666666664,
+        "viable": 0.056666666666666664
+      },
+      "spawn": {
+        "n": 13739,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6485,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.308149337768555,
+        -1.521021842956543
+      ],
+      "on_surface": true,
+      "viable": 0.07666666666666666,
+      "near": {
+        "n": 2540,
+        "free": 0.9966666666666667,
+        "reach": 0.07666666666666666,
+        "viable": 0.07666666666666666
+      },
+      "spawn": {
+        "n": 13787,
+        "free": 0.8866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6063,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.308145999908447,
+        -1.4410226345062256
+      ],
+      "on_surface": true,
+      "viable": 0.13,
+      "near": {
+        "n": 3000,
+        "free": 0.9633333333333334,
+        "reach": 0.13,
+        "viable": 0.13
+      },
+      "spawn": {
+        "n": 13802,
+        "free": 0.9233333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5722,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.3081488609313965,
+        -1.361021876335144
+      ],
+      "on_surface": true,
+      "viable": 0.15333333333333332,
+      "near": {
+        "n": 3475,
+        "free": 0.9566666666666667,
+        "reach": 0.15333333333333332,
+        "viable": 0.15333333333333332
+      },
+      "spawn": {
+        "n": 13789,
+        "free": 0.8966666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5478,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.308147430419922,
+        -1.281022310256958
+      ],
+      "on_surface": true,
+      "viable": 0.18,
+      "near": {
+        "n": 3959,
+        "free": 0.9266666666666666,
+        "reach": 0.18,
+        "viable": 0.18
+      },
+      "spawn": {
+        "n": 13757,
+        "free": 0.9166666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5343,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308142185211182,
+        -1.2010222673416138
+      ],
+      "on_surface": true,
+      "viable": 0.20666666666666667,
+      "near": {
+        "n": 4445,
+        "free": 0.9166666666666666,
+        "reach": 0.20666666666666667,
+        "viable": 0.20666666666666667
+      },
+      "spawn": {
+        "n": 13707,
+        "free": 0.9333333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.3081488609313965,
+        -1.1210218667984009
+      ],
+      "on_surface": true,
+      "viable": 0.19666666666666666,
+      "near": {
+        "n": 4906,
+        "free": 0.8533333333333334,
+        "reach": 0.19666666666666666,
+        "viable": 0.19666666666666666
+      },
+      "spawn": {
+        "n": 13669,
+        "free": 0.9566666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.30814790725708,
+        -1.041022777557373
+      ],
+      "on_surface": true,
+      "viable": 0.19,
+      "near": {
+        "n": 5345,
+        "free": 0.83,
+        "reach": 0.19,
+        "viable": 0.19
+      },
+      "spawn": {
+        "n": 13642,
+        "free": 0.9833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.3081488609313965,
+        -0.9610224962234497
+      ],
+      "on_surface": true,
+      "viable": 0.23,
+      "near": {
+        "n": 5755,
+        "free": 0.8233333333333334,
+        "reach": 0.24,
+        "viable": 0.23
+      },
+      "spawn": {
+        "n": 13652,
+        "free": 0.9833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.309401035308838,
+        -0.8823461532592773
+      ],
+      "on_surface": true,
+      "viable": 0.2,
+      "near": {
+        "n": 6145,
+        "free": 0.76,
+        "reach": 0.22666666666666666,
+        "viable": 0.2
+      },
+      "spawn": {
+        "n": 13715,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5306,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.309410095214844,
+        -0.8023706674575806
+      ],
+      "on_surface": true,
+      "viable": 0.20333333333333334,
+      "near": {
+        "n": 6503,
+        "free": 0.8166666666666667,
+        "reach": 0.23333333333333334,
+        "viable": 0.20333333333333334
+      },
+      "spawn": {
+        "n": 13696,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5306,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308145999908447,
+        -0.7210888266563416
+      ],
+      "on_surface": true,
+      "viable": 0.17333333333333334,
+      "near": {
+        "n": 6829,
+        "free": 0.7866666666666666,
+        "reach": 0.21333333333333335,
+        "viable": 0.17333333333333334
+      },
+      "spawn": {
+        "n": 13546,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.30811071395874,
+        -0.6410160660743713
+      ],
+      "on_surface": true,
+      "viable": 0.17333333333333334,
+      "near": {
+        "n": 7134,
+        "free": 0.8133333333333334,
+        "reach": 0.21666666666666667,
+        "viable": 0.17333333333333334
+      },
+      "spawn": {
+        "n": 13283,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308116436004639,
+        -0.5610203742980957
+      ],
+      "on_surface": true,
+      "viable": 0.13666666666666666,
+      "near": {
+        "n": 7406,
+        "free": 0.8266666666666667,
+        "reach": 0.19333333333333333,
+        "viable": 0.13666666666666666
+      },
+      "spawn": {
+        "n": 12964,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308112621307373,
+        -0.48101645708084106
+      ],
+      "on_surface": true,
+      "viable": 0.10333333333333333,
+      "near": {
+        "n": 7651,
+        "free": 0.7866666666666666,
+        "reach": 0.21666666666666667,
+        "viable": 0.10333333333333333
+      },
+      "spawn": {
+        "n": 12656,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308108806610107,
+        -0.4010153114795685
+      ],
+      "on_surface": true,
+      "viable": 0.04666666666666667,
+      "near": {
+        "n": 7859,
+        "free": 0.8233333333333334,
+        "reach": 0.15333333333333332,
+        "viable": 0.04666666666666667
+      },
+      "spawn": {
+        "n": 12373,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.3081135749816895,
+        -0.32099395990371704
+      ],
+      "on_surface": true,
+      "viable": 0.06666666666666667,
+      "near": {
+        "n": 8030,
+        "free": 0.8166666666666667,
+        "reach": 0.22333333333333333,
+        "viable": 0.06666666666666667
+      },
+      "spawn": {
+        "n": 12116,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308343887329102,
+        -0.24080424010753632
+      ],
+      "on_surface": true,
+      "viable": 0.04666666666666667,
+      "near": {
+        "n": 8160,
+        "free": 0.8166666666666667,
+        "reach": 0.20333333333333334,
+        "viable": 0.04666666666666667
+      },
+      "spawn": {
+        "n": 11887,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5317,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.309362411499023,
+        -0.15980564057826996
+      ],
+      "on_surface": true,
+      "viable": 0.05,
+      "near": {
+        "n": 8243,
+        "free": 0.79,
+        "reach": 0.26,
+        "viable": 0.05
+      },
+      "spawn": {
+        "n": 11688,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5306,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.30814790725708,
+        -0.08102239668369293
+      ],
+      "on_surface": true,
+      "viable": 0.056666666666666664,
+      "near": {
+        "n": 8239,
+        "free": 0.8066666666666666,
+        "reach": 0.24333333333333335,
+        "viable": 0.056666666666666664
+      },
+      "spawn": {
+        "n": 11552,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308147430419922,
+        -0.0010225545847788453
+      ],
+      "on_surface": true,
+      "viable": 0.06,
+      "near": {
+        "n": 8239,
+        "free": 0.86,
+        "reach": 0.18,
+        "viable": 0.06
+      },
+      "spawn": {
+        "n": 11402,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308147430419922,
+        0.07897745817899704
+      ],
+      "on_surface": true,
+      "viable": 0.08666666666666667,
+      "near": {
+        "n": 8239,
+        "free": 0.82,
+        "reach": 0.22666666666666666,
+        "viable": 0.08666666666666667
+      },
+      "spawn": {
+        "n": 11236,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.30814790725708,
+        0.1589776575565338
+      ],
+      "on_surface": true,
+      "viable": 0.14333333333333334,
+      "near": {
+        "n": 8239,
+        "free": 0.8433333333333334,
+        "reach": 0.26,
+        "viable": 0.14333333333333334
+      },
+      "spawn": {
+        "n": 11054,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308143615722656,
+        0.23897744715213776
+      ],
+      "on_surface": true,
+      "viable": 0.14,
+      "near": {
+        "n": 8239,
+        "free": 0.8166666666666667,
+        "reach": 0.23666666666666666,
+        "viable": 0.14
+      },
+      "spawn": {
+        "n": 10856,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.30814790725708,
+        0.3189775347709656
+      ],
+      "on_surface": true,
+      "viable": 0.13333333333333333,
+      "near": {
+        "n": 8239,
+        "free": 0.8533333333333334,
+        "reach": 0.19333333333333333,
+        "viable": 0.13333333333333333
+      },
+      "spawn": {
+        "n": 10638,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308148384094238,
+        0.3989775776863098
+      ],
+      "on_surface": true,
+      "viable": 0.20333333333333334,
+      "near": {
+        "n": 8239,
+        "free": 0.84,
+        "reach": 0.24666666666666667,
+        "viable": 0.20333333333333334
+      },
+      "spawn": {
+        "n": 10402,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.30814790725708,
+        0.4789775311946869
+      ],
+      "on_surface": true,
+      "viable": 0.21,
+      "near": {
+        "n": 8231,
+        "free": 0.8333333333333334,
+        "reach": 0.23333333333333334,
+        "viable": 0.21
+      },
+      "spawn": {
+        "n": 10152,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.272110939025879,
+        0.5278917551040649
+      ],
+      "on_surface": true,
+      "viable": 0.7,
+      "near": {
+        "n": 7820,
+        "free": 0.8533333333333334,
+        "reach": 0.8133333333333334,
+        "viable": 0.7
+      },
+      "spawn": {
+        "n": 10222,
+        "free": 0.9966666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5679,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.310488224029541,
+        0.6355061531066895
+      ],
+      "on_surface": true,
+      "viable": 0.18666666666666668,
+      "near": {
+        "n": 8002,
+        "free": 0.85,
+        "reach": 0.18666666666666668,
+        "viable": 0.18666666666666668
+      },
+      "spawn": {
+        "n": 9820,
+        "free": 0.9733333333333334,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5295,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308296203613281,
+        0.7190759181976318
+      ],
+      "on_surface": true,
+      "viable": 0.12666666666666668,
+      "near": {
+        "n": 7741,
+        "free": 0.9,
+        "reach": 0.12666666666666668,
+        "viable": 0.12666666666666668
+      },
+      "spawn": {
+        "n": 9725,
+        "free": 0.9766666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5317,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308252334594727,
+        0.7990942001342773
+      ],
+      "on_surface": true,
+      "viable": 0.15333333333333332,
+      "near": {
+        "n": 7464,
+        "free": 0.8766666666666667,
+        "reach": 0.15333333333333332,
+        "viable": 0.15333333333333332
+      },
+      "spawn": {
+        "n": 9638,
+        "free": 0.9266666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5317,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.30830717086792,
+        0.8790649175643921
+      ],
+      "on_surface": true,
+      "viable": 0.14333333333333334,
+      "near": {
+        "n": 7170,
+        "free": 0.94,
+        "reach": 0.14333333333333334,
+        "viable": 0.14333333333333334
+      },
+      "spawn": {
+        "n": 9533,
+        "free": 0.8833333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5317,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308140697479248,
+        0.9589821434021024
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.307350158691406,
+        1.0616626739501953
+      ],
+      "on_surface": true,
+      "viable": 0.25,
+      "near": {
+        "n": 6429,
+        "free": 0.9566666666666667,
+        "reach": 0.25,
+        "viable": 0.25
+      },
+      "spawn": {
+        "n": 9190,
+        "free": 0.87,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5327,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.308148384094238,
+        1.118977665901184
+      ],
+      "on_surface": true,
+      "viable": 0.28,
+      "near": {
+        "n": 6185,
+        "free": 0.9633333333333334,
+        "reach": 0.28,
+        "viable": 0.28
+      },
+      "spawn": {
+        "n": 9031,
+        "free": 0.85,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5319,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.3881425857543945,
+        -2.161022186279297
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 102,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12427,
+        "free": 0.8766666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 1.0349,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.388148307800293,
+        -2.0810232162475586
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 296,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 12825,
+        "free": 0.87,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.9635,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.388143062591553,
+        -2.0010225772857666
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 564,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13132,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8937,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.388149738311768,
+        -1.9210216999053955
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 891,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13363,
+        "free": 0.87,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.8256,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.388145923614502,
+        -1.841022253036499
+      ],
+      "on_surface": true,
+      "viable": 0.0,
+      "near": {
+        "n": 1266,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "spawn": {
+        "n": 13531,
+        "free": 0.8733333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.7599,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.388146877288818,
+        -1.7610222101211548
+      ],
+      "on_surface": true,
+      "viable": 0.01,
+      "near": {
+        "n": 1684,
+        "free": 1.0,
+        "reach": 0.01,
+        "viable": 0.01
+      },
+      "spawn": {
+        "n": 13641,
+        "free": 0.92,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6972,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.388147830963135,
+        -1.6810221672058105
+      ],
+      "on_surface": true,
+      "viable": 0.05333333333333334,
+      "near": {
+        "n": 2136,
+        "free": 1.0,
+        "reach": 0.05333333333333334,
+        "viable": 0.05333333333333334
+      },
+      "spawn": {
+        "n": 13703,
+        "free": 0.8966666666666666,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.6384,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.38814640045166,
+        -1.6010222434997559
+      ],
+      "on_surface": true,
+      "viable": 0.10333333333333333,
+      "near": {
+        "n": 2619,
+        "free": 0.9933333333333333,
+        "reach": 0.10333333333333333,
+        "viable": 0.10333333333333333
+      },
+      "spawn": {
+        "n": 13719,
+        "free": 0.8933333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5847,
+      "servable": false
+    },
+    {
+      "xy": [
+        4.388148307800293,
+        -1.521021842956543
+      ],
+      "on_surface": true,
+      "viable": 0.17,
+      "near": {
+        "n": 3124,
+        "free": 0.9866666666666667,
+        "reach": 0.17,
+        "viable": 0.17
+      },
+      "spawn": {
+        "n": 13703,
+        "free": 0.91,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.5375,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388147354125977,
+        -1.4410221576690674
+      ],
+      "on_surface": true,
+      "viable": 0.2,
+      "near": {
+        "n": 3648,
+        "free": 0.93,
+        "reach": 0.2,
+        "viable": 0.2
+      },
+      "spawn": {
+        "n": 13654,
+        "free": 0.8866666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4987,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388149261474609,
+        -1.3610217571258545
+      ],
+      "on_surface": true,
+      "viable": 0.20333333333333334,
+      "near": {
+        "n": 4187,
+        "free": 0.9266666666666666,
+        "reach": 0.20333333333333334,
+        "viable": 0.20333333333333334
+      },
+      "spawn": {
+        "n": 13577,
+        "free": 0.93,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4705,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388149738311768,
+        -1.2810217142105103
+      ],
+      "on_surface": true,
+      "viable": 0.24333333333333335,
+      "near": {
+        "n": 4709,
+        "free": 0.9066666666666666,
+        "reach": 0.24333333333333335,
+        "viable": 0.24333333333333335
+      },
+      "spawn": {
+        "n": 13507,
+        "free": 0.9133333333333333,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4547,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388142108917236,
+        -1.2010222673416138
+      ],
+      "on_surface": true,
+      "viable": 0.24,
+      "near": {
+        "n": 5201,
+        "free": 0.8566666666666667,
+        "reach": 0.24,
+        "viable": 0.24
+      },
+      "spawn": {
+        "n": 13451,
+        "free": 0.94,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388147354125977,
+        -1.12102210521698
+      ],
+      "on_surface": true,
+      "viable": 0.35333333333333333,
+      "near": {
+        "n": 5662,
+        "free": 0.8633333333333333,
+        "reach": 0.36,
+        "viable": 0.35333333333333333
+      },
+      "spawn": {
+        "n": 13413,
+        "free": 0.96,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388148307800293,
+        -1.0410219430923462
+      ],
+      "on_surface": true,
+      "viable": 0.31333333333333335,
+      "near": {
+        "n": 6101,
+        "free": 0.8233333333333334,
+        "reach": 0.3233333333333333,
+        "viable": 0.31333333333333335
+      },
+      "spawn": {
+        "n": 13386,
+        "free": 0.9766666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.38814640045166,
+        -0.961022675037384
+      ],
+      "on_surface": true,
+      "viable": 0.3333333333333333,
+      "near": {
+        "n": 6511,
+        "free": 0.8033333333333333,
+        "reach": 0.3566666666666667,
+        "viable": 0.3333333333333333
+      },
+      "spawn": {
+        "n": 13443,
+        "free": 0.99,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.389468669891357,
+        -0.8823636174201965
+      ],
+      "on_surface": true,
+      "viable": 0.30666666666666664,
+      "near": {
+        "n": 6900,
+        "free": 0.8433333333333334,
+        "reach": 0.33,
+        "viable": 0.30666666666666664
+      },
+      "spawn": {
+        "n": 13512,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4505,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.399847030639648,
+        -0.8110010623931885
+      ],
+      "on_surface": true,
+      "viable": 0.5166666666666667,
+      "near": {
+        "n": 7314,
+        "free": 0.8,
+        "reach": 0.66,
+        "viable": 0.5166666666666667
+      },
+      "spawn": {
+        "n": 13414,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4402,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.389895915985107,
+        -0.7221077680587769
+      ],
+      "on_surface": true,
+      "viable": 0.25,
+      "near": {
+        "n": 7596,
+        "free": 0.7833333333333333,
+        "reach": 0.33666666666666667,
+        "viable": 0.25
+      },
+      "spawn": {
+        "n": 13210,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4501,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388150691986084,
+        -0.6410175561904907
+      ],
+      "on_surface": true,
+      "viable": 0.19333333333333333,
+      "near": {
+        "n": 7891,
+        "free": 0.7633333333333333,
+        "reach": 0.30333333333333334,
+        "viable": 0.19333333333333333
+      },
+      "spawn": {
+        "n": 12896,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388116836547852,
+        -0.5610170960426331
+      ],
+      "on_surface": true,
+      "viable": 0.17333333333333334,
+      "near": {
+        "n": 8162,
+        "free": 0.8033333333333333,
+        "reach": 0.2966666666666667,
+        "viable": 0.17333333333333334
+      },
+      "spawn": {
+        "n": 12576,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388116836547852,
+        -0.4810176491737366
+      ],
+      "on_surface": true,
+      "viable": 0.12,
+      "near": {
+        "n": 8407,
+        "free": 0.81,
+        "reach": 0.25666666666666665,
+        "viable": 0.12
+      },
+      "spawn": {
+        "n": 12268,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.3881120681762695,
+        -0.4010159373283386
+      ],
+      "on_surface": true,
+      "viable": 0.15333333333333332,
+      "near": {
+        "n": 8615,
+        "free": 0.8466666666666667,
+        "reach": 0.2833333333333333,
+        "viable": 0.15333333333333332
+      },
+      "spawn": {
+        "n": 11985,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.389895439147949,
+        -0.31996050477027893
+      ],
+      "on_surface": true,
+      "viable": 0.18666666666666668,
+      "near": {
+        "n": 8806,
+        "free": 0.83,
+        "reach": 0.3566666666666667,
+        "viable": 0.18666666666666668
+      },
+      "spawn": {
+        "n": 11713,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4501,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.389923572540283,
+        -0.23995861411094666
+      ],
+      "on_surface": true,
+      "viable": 0.19666666666666666,
+      "near": {
+        "n": 8930,
+        "free": 0.8133333333333334,
+        "reach": 0.38333333333333336,
+        "viable": 0.19666666666666666
+      },
+      "spawn": {
+        "n": 11489,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4501,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.42949104309082,
+        -0.1376252919435501
+      ],
+      "on_surface": true,
+      "viable": 0.5933333333333334,
+      "near": {
+        "n": 9352,
+        "free": 0.8566666666666667,
+        "reach": 0.7366666666666667,
+        "viable": 0.5933333333333334
+      },
+      "spawn": {
+        "n": 11103,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4105,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388149261474609,
+        -0.081022247672081
+      ],
+      "on_surface": true,
+      "viable": 0.13333333333333333,
+      "near": {
+        "n": 8990,
+        "free": 0.87,
+        "reach": 0.2633333333333333,
+        "viable": 0.13333333333333333
+      },
+      "spawn": {
+        "n": 11182,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388148784637451,
+        -0.0010223506251350045
+      ],
+      "on_surface": true,
+      "viable": 0.14333333333333334,
+      "near": {
+        "n": 8983,
+        "free": 0.8533333333333334,
+        "reach": 0.29,
+        "viable": 0.14333333333333334
+      },
+      "spawn": {
+        "n": 11042,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.3881425857543945,
+        0.07897737622261047
+      ],
+      "on_surface": true,
+      "viable": 0.10666666666666667,
+      "near": {
+        "n": 8983,
+        "free": 0.8433333333333334,
+        "reach": 0.2633333333333333,
+        "viable": 0.10666666666666667
+      },
+      "spawn": {
+        "n": 10876,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388148307800293,
+        0.15897750854492188
+      ],
+      "on_surface": true,
+      "viable": 0.18333333333333332,
+      "near": {
+        "n": 8983,
+        "free": 0.8466666666666667,
+        "reach": 0.31666666666666665,
+        "viable": 0.18333333333333332
+      },
+      "spawn": {
+        "n": 10694,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388145923614502,
+        0.23897746205329895
+      ],
+      "on_surface": true,
+      "viable": 0.17,
+      "near": {
+        "n": 8983,
+        "free": 0.8433333333333334,
+        "reach": 0.2833333333333333,
+        "viable": 0.17
+      },
+      "spawn": {
+        "n": 10496,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.3881449699401855,
+        0.31897738575935364
+      ],
+      "on_surface": true,
+      "viable": 0.2,
+      "near": {
+        "n": 8983,
+        "free": 0.8366666666666667,
+        "reach": 0.27666666666666667,
+        "viable": 0.2
+      },
+      "spawn": {
+        "n": 10278,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388147830963135,
+        0.39897769689559937
+      ],
+      "on_surface": true,
+      "viable": 0.22666666666666666,
+      "near": {
+        "n": 8983,
+        "free": 0.8566666666666667,
+        "reach": 0.30666666666666664,
+        "viable": 0.22666666666666666
+      },
+      "spawn": {
+        "n": 10042,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.38814640045166,
+        0.4789772927761078
+      ],
+      "on_surface": true,
+      "viable": 0.30666666666666664,
+      "near": {
+        "n": 8935,
+        "free": 0.86,
+        "reach": 0.36333333333333334,
+        "viable": 0.30666666666666664
+      },
+      "spawn": {
+        "n": 9832,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.394472599029541,
+        0.5354322791099548
+      ],
+      "on_surface": true,
+      "viable": 0.25,
+      "near": {
+        "n": 8882,
+        "free": 0.8266666666666667,
+        "reach": 0.2633333333333333,
+        "viable": 0.25
+      },
+      "spawn": {
+        "n": 9720,
+        "free": 1.0,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4456,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.3881406974792485,
+        0.6389821434021021
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.3881406974792485,
+        0.7189821434021022
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.3881406974792485,
+        0.7989821434021023
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.3881406974792485,
+        0.8789821434021023
+      ],
+      "on_surface": false,
+      "viable": 0.0,
+      "min_standoff": null
+    },
+    {
+      "xy": [
+        4.384273052215576,
+        0.950597882270813
+      ],
+      "on_surface": true,
+      "viable": 0.3333333333333333,
+      "near": {
+        "n": 7429,
+        "free": 0.9433333333333334,
+        "reach": 0.3333333333333333,
+        "viable": 0.3333333333333333
+      },
+      "spawn": {
+        "n": 9241,
+        "free": 0.89,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4557,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.406932353973389,
+        1.0733726024627686
+      ],
+      "on_surface": true,
+      "viable": 0.8366666666666667,
+      "near": {
+        "n": 7069,
+        "free": 0.96,
+        "reach": 0.8566666666666667,
+        "viable": 0.8366666666666667
+      },
+      "spawn": {
+        "n": 8943,
+        "free": 0.86,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4331,
+      "servable": true
+    },
+    {
+      "xy": [
+        4.388145923614502,
+        1.1189771890640259
+      ],
+      "on_surface": true,
+      "viable": 0.37,
+      "near": {
+        "n": 6749,
+        "free": 0.9766666666666667,
+        "reach": 0.37,
+        "viable": 0.37
+      },
+      "spawn": {
+        "n": 8851,
+        "free": 0.8366666666666667,
+        "reach": 0.0,
+        "viable": 0.0
+      },
+      "min_standoff": 0.4519,
+      "servable": true
+    }
+  ]
+}
